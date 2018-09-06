@@ -19,11 +19,16 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::get('/home', 'HomeController@index');
+
+//API Urls
 Route::get('/addCategory', 'CategoryController@addCategory');
 Route::get('/getCategory', 'CategoryController@getCategory');
 Route::get('/registerCustomer', 'CustomerController@register');
 Route::get('/updateCustomer', 'CustomerController@update');
 Route::get('/insertAd', 'AdsController@insertAd');
 
-
+//Admin Urls
+Route::get('/admin/category', 'AdminController@getCategories');
+Route::post('/admin/getChildCategory', 'AdminController@getChildCategory');
+Route::resource('tests', 'testController');
 

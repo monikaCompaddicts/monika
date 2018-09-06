@@ -25,11 +25,14 @@
 
     <!-- Ionicons -->
     <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link rel="stylesheet" href="{{ url('css/style.css') }}">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
 
     @yield('css')
 </head>
 
 <body class="skin-blue sidebar-mini">
+    <div id="base-url" data-url="{{ url('/') }}" style="display: none;"></div>
 @if (!Auth::guest())
     <div class="wrapper">
         <!-- Main Header -->

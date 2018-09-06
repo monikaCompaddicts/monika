@@ -1,0 +1,15 @@
+.parentDiv{
+	padding: 7px 0 7px 20px;
+    background-color: #eaeaea;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.parentDivChildren{
+	text-align: center;
+    float: right;
+    cursor: pointer;
+    width: 40px;
+    border-left: 1px solid #ddd;
+}
