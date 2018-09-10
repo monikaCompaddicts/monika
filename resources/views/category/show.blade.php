@@ -1,12 +1,78 @@
-@extends('layouts.app')
 
-@section('content')
+
+<!-- Modal -->
+<div id="sub-cat-modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Add Sub Category</h4>
+      </div>
+      <div class="modal-body">
+        {!! Form::open(['id' => 'saveNewCategory', 'method' => 'POST', 'url' => '/admin/saveNewCategory', 'files' => true]) !!}
+            {!! Form::hidden('parent_category', '', ['class' => 'form-control']); !!}
+            <div class="form-group">
+                {!! Form::label('name', 'Category Name') !!}
+                {!! Form::text('category_name', '', ['class' => 'form-control']); !!}
+            </div>
+            <div class="form-group">
+                {!! Form::label('image', 'Category Image') !!}
+                {!! Form::file('image', array('class' => 'form-control', 'id' => 'cat-image')) !!}
+            </div>
+            {!! Form::submit('SUBMIT', ['class' => 'btn btn-primary', 'onclick' => 'return validateCategoryForm();']); !!}
+        {!! Form::close() !!}
+      </div>
+      <!--div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div-->
+    </div>
+
+  </div>
+</div>
+
+
+<!-- Modal -->
+<div id="edit-cat-modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Edit Category</h4>
+      </div>
+      <div class="modal-body">
+        {!! Form::open(['id' => 'saveNewCategory', 'method' => 'POST', 'url' => '/admin/saveNewCategory', 'files' => true]) !!}
+            {!! Form::hidden('parent_category', '', ['class' => 'form-control']); !!}
+            <div class="form-group">
+                {!! Form::label('name', 'Category Name') !!}
+                {!! Form::text('category_name', '', ['class' => 'form-control']); !!}
+            </div>
+            <div class="form-group">
+                {!! Form::label('image', 'Category Image') !!}
+                {!! Form::file('image', array('class' => 'form-control', 'id' => 'cat-image')) !!}
+            </div>
+            {!! Form::submit('SUBMIT', ['class' => 'btn btn-primary', 'onclick' => 'return validateCategoryForm();']); !!}
+        {!! Form::close() !!}
+      </div>
+      <!--div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div-->
+    </div>
+
+  </div>
+</div>
     <section class="content-header">
-        <h1>
+        <h1 class="pull-left">
             Categories
         </h1>
+        <h1 class="pull-right">
+           <a class="btn btn-primary pull-right add-parent-category add-sub-category" data-toggle="modal" data-target="#sub-cat-modal" title="Add Parent Category" data-id="0" href="#">Add New Category</a>
+        </h1>
     </section>
-    <div class="content">
+    <div class="content" style="margin-top: 13px;">
         <div class="box box-primary">
             <div class="box-body">
                 <div class="row" style="padding-left: 20px; padding-right: 20px">
@@ -23,6 +89,9 @@
                             @if($count_child_category > 0)
                             <span style="float: right;cursor: {{ $cursor }}" class="parentDivChildren" data-child="{{ $count_child_category }}" data-id="{{ $category->id }}"><i class="fas fa-sort-down"></i></span>
                             @endif
+                            <span class="add-sub-category" data-toggle="modal" data-target="#sub-cat-modal" title="Add Sub Category" data-id="{{ $category->id }}"><i class="fas fa-plus"></i></span>
+                            <span class="edit-category" data-toggle="modal" data-target="#edit-cat-modal" title="Edit Category" data-attr="{{ json_encode($category) }}"><i class="fas fa-edit"></i></span>
+                            <span class="delete-this-category" title="Delete Category" data-id="{{ $category->id }}"><i class="fas fa-trash-alt"></i></span>
                         </div>
                    @endforeach
                     <a href="{!! route('tests.index') !!}" class="btn btn-default">Back</a>
@@ -30,51 +99,4 @@
             </div>
         </div>
     </div>
-@endsection
 
-@section('scripts')
-<script>
-    var base_url = $('#base-url').attr('data-url');
-    $( ".parentDivChildren" ).on( "click", function() {
-        if($( this ).parent().find('.parentDiv').length !== 0){
-         $( this ).parent().find('.parentDiv').remove();
-        }else{
-        //alert("sfsdf");
-      var child = $( this ).attr('data-child');
-      if(child > 0){
-        var parent_id = $( this ).attr('data-id');
-        var this_div = $(this);
-        $.ajax({
-            type: "POST",
-            url: base_url + '/admin/getChildCategory',
-            data: {parent_id: parent_id},
-            success: function( response ) {
-                var result = jQuery.parseJSON(response);
-                for (var i = 0; i < result.length; i++) {
-                    var cat_div = '';
-                    var count_child_category = result[i].child_category;
-                    if (count_child_category > 0) {
-                        var cursor = 'pointer';
-                    }else{
-                        var cursor = '';
-                    }
-                    if (i == 0) {
-                        var margin_top = '10px';
-                    }else{
-                        var margin_top = '';
-                    }
-                    cat_div = cat_div+'<div id="category_'+result[i].id+'" style="margin-right: 20px; margin-top: '+margin_top+'" class="parentDiv" data-child="'+count_child_category+'" data-id="'+result[i].id+'">'+
-                        result[i].name;
-                        if(count_child_category > 0){
-                            cat_div = cat_div+'<span style="float: right;cursor: '+cursor+';" class="parentDivChildren" data-child="'+count_child_category+'" data-id="'+result[i].id+'" style=""><i class="fas fa-sort-down"></i></span>';
-                        }
-                    cat_div = cat_div+'</div>';
-                    $(this_div).parent().append(cat_div);
-                }
-            }
-        });
-      }
-  }
-    });
-</script>
-@endsection

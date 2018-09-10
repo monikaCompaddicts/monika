@@ -2,6 +2,9 @@
 
 use Illuminate\Http\Request;
 
+Route::get('/qwerty', function () {
+    return "Hi";
+});
 /*
 |--------------------------------------------------------------------------
 | API Routes

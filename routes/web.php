@@ -30,5 +30,13 @@ Route::get('/insertAd', 'AdsController@insertAd');
 //Admin Urls
 Route::get('/admin/category', 'AdminController@getCategories');
 Route::post('/admin/getChildCategory', 'AdminController@getChildCategory');
+Route::post('/admin/saveNewCategory', 'AdminController@saveNewCategory');
+Route::post('/admin/editCategory', 'AdminController@editCategory');
+Route::post('/admin/deleteCategory', 'AdminController@deleteCategory');
+Route::get('/admin/category/create', 'AdminController@createCategory');
+Route::post('/admin/changeVendorStatus', 'AdminController@changeVendorStatus');
 Route::resource('tests', 'testController');
 
+
+
+Route::resource('vendors', 'vendorController');

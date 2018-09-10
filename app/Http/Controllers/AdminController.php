@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Category;
+use App\Models\vendor;
+use Flash;
 
 class AdminController extends Controller
 {
@@ -28,6 +30,7 @@ class AdminController extends Controller
         $getCategory_arr = $this->childCategory(0, json_encode($category_arr));
        // $categories = json_decode($getCategory_arr);
 		$categories = Category::where('parent_category', 0)->get();
+        Flash::success('Category saved successfully.');
 		return view('category/index', ['categories' => $categories]);
     }
 
@@ -49,13 +52,109 @@ class AdminController extends Controller
         return json_encode($categories);
     }
 
+    public function createCategory(){
+        $parentCategories = Category::where('parent_category', 0)->get();
+        $parent_categories = array();
+        $parent_categories[0] = 'Select';
+        foreach ($parentCategories as $value) {
+           $parent_categories[$value->id] = $value->name;
+        }
+        return view('category/create', ['parent_categories' => $parent_categories]);
+    }
+
+    public function saveNewCategory(Request $r){
+        $image = $r->file('image');
+        $image_name = $r->category_name.'-'.time().'.'.$image->getClientOriginalExtension();
+        $destinationPath = public_path('image/category_image');
+        $image_url = url('public/image/category_image/'.$image_name);
+        $image->move($destinationPath, $image_name);
+
+        $insertCategory = new Category;
+        $insertCategory->name = $r->category_name;
+        $insertCategory->image = $image_url;
+        $insertCategory->parent_category = $r->parent_category;
+        $insertCategory->added_on = date('Y-m-d H:i:s');
+        $insertCategory->status = 1;
+        $insertCategory->save();
+        $categories = Category::where('parent_category', 0)->get();
+        Flash::success('Category saved successfully.');
+        return redirect('/admin/category');
+    }
+
+    public function editCategory(Request $r){
+        if($r->has('image')){
+            $exists_cat = Category::where('id', $r->category_id)->first();
+            $exists_img_arr = explode('/', $exists_cat->image);
+            $exists_img_name = $exists_img_arr[count($exists_img_arr)-1];
+            $unlink_path = public_path('image/category_image').'/'.$exists_img_arr[count($exists_img_arr)-1];
+            unlink($unlink_path);
+
+            $image = $r->file('image');
+            $image_name = $r->category_name.'-'.time().'.'.$image->getClientOriginalExtension();
+            $destinationPath = public_path('image/category_image');
+            $image_url = url('public/image/category_image/'.$image_name);
+            $image->move($destinationPath, $image_name);
+        }
+
+        $insertCategory = Category::where('id', $r->category_id)->first();
+        $insertCategory->name = $r->category_name;
+        if($r->has('image')){
+            $insertCategory->image = $image_url;
+        }
+        $insertCategory->save();
+        //$categories = Category::where('parent_category', 0)->get();
+        Flash::success('Category saved successfully.');
+        return redirect('/admin/category');
+    }
+
+    public function deleteCategory(Request $r){
+        $id = $r->id;
+        //Category::where('id', $id)->delete();
+        $id_arr = array($id);
+        $temp_arr = array($id);
+        $categories = Category::where('parent_category', $id)->get();
+
+        if(count($categories) > 0){
+            $this->deleteSubCategories(json_encode($id_arr), json_encode($temp_arr));
+        }else{
+            Category::where('id', $id)->delete();
+        }
+        return 1;
+    }
+
+    function deleteSubCategories($id_json, $temp_json){
+        $id_arr = json_decode($id_json);
+        $temp_arr = json_decode($temp_json);
+       
+        $categories = Category::whereIn('parent_category', $temp_arr)->get();
+
+        $count = 0;
+        $temp_arr = array();
+
+        if(count($categories) > 0){
+            foreach($categories as $cat){
+                $id_arr[] = $cat->id;
+                $temp_arr[] = $cat->id;
+            }
+            $this->deleteSubCategories(json_encode($id_arr), json_encode($temp_arr));
+        }else{
+            Category::whereIn('id', $id_arr)->delete();
+            echo 1;exit;
+        }   
+    }
+
+    public function changeVendorStatus(Request $r){
+        $vendor_id = $r->vendor_id;
+        $status = $r->status;
+        vendor::where('id', $vendor_id)->update(['status' => $status]);
+        return 1;
+    }
+
     public function childCategory($parent_id, $category_json){
         $category_arr = json_decode($category_json);
         $categories = Category::where('parent_category', $parent_id)->get();
-        foreach ($categories as $category) {
-            $category_arr[$parent_id][$category->id] = $category->name;
-            $this->childCategory($category->id, json_encode($category_arr));
-        }
-        return json_encode($category_arr);
+        
+        //return json_encode($category_arr);
+        return json_encode($categories);
     }
 }
