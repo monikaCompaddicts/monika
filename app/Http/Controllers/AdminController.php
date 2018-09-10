@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Category;
 use App\Models\vendor;
 use Flash;
+use Redirect; 
 
 class AdminController extends Controller
 {
@@ -43,6 +44,7 @@ class AdminController extends Controller
             $count_child_category = Category::where('parent_category', $category->id)->count();
             $categories[$i]['id'] = $category->id;
             $categories[$i]['name'] = $category->name;
+            $categories[$i]['image'] = $category->image;
             $categories[$i]['parent_category'] = $category->parent_category;
             $categories[$i]['added_on'] = $category->added_on;
             $categories[$i]['status'] = $category->status;
@@ -148,6 +150,13 @@ class AdminController extends Controller
         $status = $r->status;
         vendor::where('id', $vendor_id)->update(['status' => $status]);
         return 1;
+    }
+
+    public function sendMailToVendor($id){
+        $vendor = vendor::where('id', $id)->first();
+        $email = $vendor->email;
+        return Redirect::back();
+        //echo $email;exit;
     }
 
     public function childCategory($parent_id, $category_json){

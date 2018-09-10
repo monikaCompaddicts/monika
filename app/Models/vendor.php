@@ -53,7 +53,7 @@ class vendor extends Model
         'name' => 'required',
         'email' => 'required|email',
         'phone' => 'required',
-        'password' => 'required'
+        //'password' => 'required'
     ];
 
     

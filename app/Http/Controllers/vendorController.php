@@ -57,6 +57,13 @@ class vendorController extends AppBaseController
     {
         $input = $request->all();
 
+        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $charactersLength = strlen($characters);
+        $randomString = '';
+        for ($i = 0; $i < 8; $i++) {
+            $randomString .= $characters[rand(0, $charactersLength - 1)];
+        }
+        $input['password'] = $randomString;
         $vendor = $this->vendorRepository->create($input);
 
         Flash::success('Vendor saved successfully.');
@@ -121,8 +128,9 @@ class vendorController extends AppBaseController
 
             return redirect(route('vendors.index'));
         }
-
-        $vendor = $this->vendorRepository->update($request->all(), $id);
+        $input = $request->all();
+        $input['password'] = $vendor->password;
+        $vendor = $this->vendorRepository->update($input, $id);
 
         Flash::success('Vendor updated successfully.');
 

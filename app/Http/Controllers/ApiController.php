@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Category;
+use App\Models\location;
 
-class CategoryController extends Controller
+class ApiController extends Controller
 {
     /**
      * Create a new controller instance.
@@ -28,8 +29,8 @@ class CategoryController extends Controller
         $data = array('id' => 'tgb','name' => 'qwert','age' => 'ssdfs');
         return json_encode($data);
     }
-	
-    public function getCategory()    {
+	 public function getCategory()
+    {
         $category_arr = array();
 		$categories = Category::where('parent_category', 0)->get();
 		//return json_encode($categories);
@@ -52,22 +53,14 @@ class CategoryController extends Controller
 
     }
 
-    public function addCategory()
-    {
-        
-		$name = 'Cars';
-		$parent_category = 1;
-		$added_on = date('Y-m-d H:i:s');
-		$status = 1;
-		
-		$insertCategory = new Category();
-		$insertCategory->name = $name;
-		$insertCategory->parent_category = $parent_category;
-		$insertCategory->added_on = $added_on;
-		$insertCategory->status = $status;
-		$insertCategory->save();
-		//echo "<pre>";print_r(Category::get());exit;
-		return view('home');
+    public function getLocations(){
+        $data = array();
+        $locations = location::get();
+        for($i=0; $i<count($locations); $i++){
+            $data[$i]['market_name'] = $locations[$i]->market_name;
+            $data[$i]['address'] = $locations[$i]->address;
+        } 
+        return json_encode($data);  
     }
 }
 

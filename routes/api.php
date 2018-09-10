@@ -5,6 +5,8 @@ use Illuminate\Http\Request;
 Route::get('/qwerty', function () {
     return "Hi";
 });
+
+Route::get('api-call', 'CategoryController@getCategory')->middleware('cors');
 /*
 |--------------------------------------------------------------------------
 | API Routes

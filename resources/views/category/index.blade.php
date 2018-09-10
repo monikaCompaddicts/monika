@@ -275,6 +275,7 @@
                 data: {parent_id: parent_id},
                 success: function( response ) {
                     var result = jQuery.parseJSON(response);
+                    console.log(result);
                     for (var i = 0; i < result.length; i++) {
                         var cat_div = '';
                         var count_child_category = result[i].child_category;
@@ -291,9 +292,10 @@
                         cat_div = cat_div+'<div id="category_'+result[i].id+'" style="margin-right: 20px; margin-top: '+margin_top+'" class="parentDiv" data-child="'+count_child_category+'" data-id="'+result[i].id+'">'+
                             result[i].name;
                             if(count_child_category > 0){
-                                cat_div = cat_div+'<span style="float: right;cursor: '+cursor+';" class="parentDivChildren" data-child="'+count_child_category+'" data-id="'+result[i].id+'" style=""><i class="fas fa-sort-down"></i></span>';
+                                //cat_div = cat_div+'<span style="float: right;cursor: '+cursor+';" class="parentDivChildren" data-child="'+count_child_category+'" data-id="'+result[i].id+'" style=""><i class="fas fa-sort-down"></i></span>';
                             }
-                        cat_div = cat_div+'<span class="add-sub-category" data-toggle="modal" data-target="#sub-cat-modal" title="Add Sub Category" data-id="'+result[i].id+'"><i class="fas fa-plus"></i></span>'+
+                        cat_div = cat_div+
+                                //'<span class="add-sub-category" data-toggle="modal" data-target="#sub-cat-modal" title="Add Sub Category" data-id="'+result[i].id+'"><i class="fas fa-plus"></i></span>'+
                                 '<span class="edit-category" data-toggle="modal" data-target="#edit-cat-modal" title="Edit Category" data-id="'+result[i].id+'" data-name="'+result[i].name+'" data-image="'+result[i].image+'"><i class="fas fa-edit"></i></span>'+
                                 '<span class="delete-this-category" title="Delete Category" data-id="'+result[i].id+'"><i class="fas fa-trash-alt"></i></span></div>';
                         $(this_div).parent().append(cat_div);
