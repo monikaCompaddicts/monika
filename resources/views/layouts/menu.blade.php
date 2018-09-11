@@ -15,3 +15,7 @@
     <a href="{!! route('locations.index') !!}"><i class="fa fa-edit"></i><span>Locations</span></a>
 </li>
 
+<li class="{{ Request::is('banners*') ? 'active' : '' }}">
+    <a href="{!! url('banners/1/edit') !!}"><i class="fa fa-edit"></i><span>Banners</span></a>
+</li>
+

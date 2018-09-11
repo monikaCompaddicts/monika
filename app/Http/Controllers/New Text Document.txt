@@ -29,8 +29,8 @@ class ApiController extends Controller
         $data = array('id' => 'tgb','name' => 'qwert','age' => 'ssdfs');
         return json_encode($data);
     }
-	
-    public function getCategory()    {
+	 public function getCategory()
+    {
         $category_arr = array();
 		$categories = Category::where('parent_category', 0)->get();
 		//return json_encode($categories);
@@ -53,49 +53,14 @@ class ApiController extends Controller
 
     }
 
-    public function getLocations()    {
+    public function getLocations(){
         $data = array();
         $locations = location::get();
         for($i=0; $i<count($locations); $i++){
-            $data[$i]['id'] = $locations[$i]->id;
             $data[$i]['market_name'] = $locations[$i]->market_name;
             $data[$i]['address'] = $locations[$i]->address;
-        }
-        
-        return json_encode($data);
-
-    }
-
-    public function getbanners()    {
-        $data = array();
-        $banner = banner::first();
-        //for($i=0; $i<count($locations); $i++){
-            $data['id'] = $banner->id;
-            $data['banner_heading'] = $banner->banner_heading;
-            $data['banner_description'] = $banner->banner_description;
-            $data['banner_image'] = $banner->banner_image;
-       // }
-        
-        return json_encode($data);
-
-    }
-
-    public function addCategory()
-    {
-        
-		$name = 'Cars';
-		$parent_category = 1;
-		$added_on = date('Y-m-d H:i:s');
-		$status = 1;
-		
-		$insertCategory = new Category();
-		$insertCategory->name = $name;
-		$insertCategory->parent_category = $parent_category;
-		$insertCategory->added_on = $added_on;
-		$insertCategory->status = $status;
-		$insertCategory->save();
-		//echo "<pre>";print_r(Category::get());exit;
-		return view('home');
+        } 
+        return json_encode($data);  
     }
 }
 

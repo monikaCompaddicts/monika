@@ -37,14 +37,18 @@ Route::post('/admin/deleteCategory', 'AdminController@deleteCategory');
 Route::get('/admin/category/create', 'AdminController@createCategory');
 Route::post('/admin/changeVendorStatus', 'AdminController@changeVendorStatus');
 Route::get('/admin/send-mail/{id}', 'AdminController@sendMailToVendor');
+
 Route::resource('tests', 'testController');
-
-
-
 Route::resource('vendors', 'vendorController');
 Route::resource('locations', 'locationController');
 
 // Routes for API
-Route::get('get-category', 'ApiController@getCategory')->middleware('cors');
-Route::get('get-locations', 'ApiController@getLocations')->middleware('cors');
+Route::get('api/get-category', 'ApiController@getCategory')->middleware('cors');
+Route::get('api/get-locations', 'ApiController@getLocations')->middleware('cors');
+Route::get('api/get-banner', 'ApiController@getbanners')->middleware('cors');
 
+
+
+
+
+Route::resource('banners', 'bannerController');
