@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Category;
 use App\Models\location;
+use App\Models\banner;
+use App\Models\vendor;
+use Validator;
 
 class ApiController extends Controller
 {
@@ -78,6 +81,133 @@ class ApiController extends Controller
         
         return json_encode($data);
 
+    }
+
+    public function addVendor(Request $r){
+        $data = array();
+        $name = $r->name;
+        $email = $r->email;
+        $phone = $r->mobile;
+        $user_type = $r->user_type;
+
+        $email_validator = Validator::make($r->all(), [
+            'email' => 'required|email'
+        ]);
+
+        $phone_validator = Validator::make($r->all(), [
+            'mobile' => 'required|min:10|max:10'
+        ]);
+
+        if ($email_validator->fails()) {
+            $data['status'] = 0;
+            $data['err_key'] = 'email';
+            $data['message'] = 'Invalid Email Id!!';
+            return json_encode($data);
+        }
+
+        if ($phone_validator->fails()) {
+            $data['status'] = 0;
+            $data['err_key'] = 'mobile';
+            $data['message'] = 'Invalid Mobile Number!';  
+            return json_encode($data);
+        }
+        
+        //$password = $r->password;
+        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $charactersLength = strlen($characters);
+        $randomString = '';
+        for ($i = 0; $i < 8; $i++) {
+            $randomString .= $characters[rand(0, $charactersLength - 1)];
+        }
+
+        $password = $randomString;
+
+        $exist_data = vendor::where('email', $email)->get();
+        if(count($exist_data) == 0){
+            $exist_phone_data = vendor::where('phone', $phone)->get();
+            if(count($exist_phone_data) == 0){
+                $insertVendor = new vendor();
+                $insertVendor->name = $name;
+                $insertVendor->email = $email;
+                $insertVendor->phone = $phone;
+                $insertVendor->password = $password;
+                $insertVendor->status = 1;
+                $insertVendor->created_at = date("Y-m-d H:i:s");
+                $insertVendor->updated_at = date("Y-m-d H:i:s");
+                $insertVendor->save();
+
+                $data['status'] = 1;
+                $data['id'] = $insertVendor->id;
+                $data['name'] = $insertVendor->name;
+                $data['email'] = $insertVendor->email;
+                $data['phone'] = $insertVendor->phone;
+                $data['status'] = $insertVendor->status;
+                $data['message'] = 'Registered Successfully.';
+            }else{
+                $data['status'] = 0;
+                $data['err_key'] = 'mobile';
+                $data['message'] = 'Mobile Number Already Exists!';                
+            }
+        }else{
+            $data['status'] = 0;
+            $data['err_key'] = 'email';
+            $data['message'] = 'Email Id Already Exists!';
+        }
+
+        return json_encode($data);
+    }
+
+    public function loginVendor(Request $r){
+        $data = array();
+        $email_or_phone = $r->email_or_mobile;
+        $password = $r->password;
+
+        $email_validator = Validator::make($r->all(), [
+            'email_or_mobile' => 'required'
+        ]);
+
+        $password_validator = Validator::make($r->all(), [
+            'password' => 'required'
+        ]);
+
+        if ($email_validator->fails()) {
+            $data['status'] = 0;
+            $data['err_key'] = 'email';
+            $data['message'] = 'Email or Mobile is required!';
+            return json_encode($data);
+        }
+
+        if ($password_validator->fails()) {
+            $data['status'] = 0;
+            $data['err_key'] = 'password';
+            $data['message'] = 'Password Required!';  
+            return json_encode($data);
+        }
+
+        $vendor_data = array();
+        $exist_data = vendor::where('email', $email_or_phone)->get();
+        if(count($exist_data) == 0){
+            $exist_phone_data = vendor::where('phone', $email_or_phone)->get();
+            if(count($exist_data) == 0){
+                $data['status'] = 0;
+                $data['message'] = 'User Not Found!';
+            }else{
+                $vendor_data = $exist_phone_data[0];
+            }
+        }else{
+            $vendor_data = $exist_data[0];
+        }
+
+        if(count($vendor_data) != 0){
+            $data['status'] = 1;
+            $data['id'] = $exist_data[0]->id;
+            $data['name'] = $exist_data[0]->name;
+            $data['email'] = $exist_data[0]->email;
+            $data['phone'] = $exist_data[0]->phone;
+            //$data['status'] = $exist_data[0]->status;
+            $data['message'] = 'LoggedIn Successfully.';
+        }
+        return json_encode($data);
     }
 
     public function addCategory()

@@ -12,21 +12,20 @@
 */
 
 Route::get('/', function () {
-    return view('welcome');
+	return redirect('/admin/dashboard');
+    //return view('welcome');
 });
 
 
 Auth::routes();
 
-Route::get('/home', 'HomeController@index');
+Route::get('/home', function () {
+	return redirect('/admin/dashboard');
+    //return view('welcome');
+});
+//Route::get('/home', 'HomeController@index');
+Route::get('/admin/dashboard', 'HomeController@index');
 
-//API Urls
-Route::get('/addCategory', 'CategoryController@addCategory');
-Route::get('/test-api', 'CategoryController@testApi');
-Route::any('/get-category', 'CategoryController@getCategory');
-Route::get('/registerCustomer', 'CustomerController@register');
-Route::get('/updateCustomer', 'CustomerController@update');
-Route::get('/insertAd', 'AdsController@insertAd');
 
 //Admin Urls
 Route::get('/admin/category', 'AdminController@getCategories');
@@ -38,17 +37,26 @@ Route::get('/admin/category/create', 'AdminController@createCategory');
 Route::post('/admin/changeVendorStatus', 'AdminController@changeVendorStatus');
 Route::get('/admin/send-mail/{id}', 'AdminController@sendMailToVendor');
 
-Route::resource('tests', 'testController');
-Route::resource('vendors', 'vendorController');
-Route::resource('locations', 'locationController');
+Route::resource('admin/tests', 'testController');
+Route::resource('admin/vendors', 'vendorController');
+Route::resource('admin/locations', 'locationController');
+Route::resource('admin/banners', 'bannerController');
+
+//API Urls
+Route::get('/addCategory', 'CategoryController@addCategory');
+Route::get('/test-api', 'CategoryController@testApi');
+Route::any('/get-category', 'CategoryController@getCategory');
+Route::get('/registerCustomer', 'CustomerController@register');
+Route::get('/updateCustomer', 'CustomerController@update');
+Route::get('/insertAd', 'AdsController@insertAd');
 
 // Routes for API
 Route::get('api/get-category', 'ApiController@getCategory')->middleware('cors');
 Route::get('api/get-locations', 'ApiController@getLocations')->middleware('cors');
 Route::get('api/get-banner', 'ApiController@getbanners')->middleware('cors');
+Route::post('api/add-vendor', 'ApiController@addVendor')->middleware('cors');
+Route::post('api/login-vendor', 'ApiController@loginVendor')->middleware('cors');
 
 
 
 
-
-Route::resource('banners', 'bannerController');

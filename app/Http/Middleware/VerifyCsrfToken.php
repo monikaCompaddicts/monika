@@ -14,7 +14,9 @@ class VerifyCsrfToken extends Middleware
     protected $except = [ '/admin/getChildCategory', '/admin/deleteCategory', '/admin/changeVendorStatus',
     						'api/get-category',
     						'/test-api',
-    						'api/get-locations'
+    						'api/get-locations',
+    						'api/add-vendor',
+    						'api/login-vendor',
         //
     ];
 }
