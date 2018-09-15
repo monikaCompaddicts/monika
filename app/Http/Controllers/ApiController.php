@@ -89,6 +89,7 @@ class ApiController extends Controller
         $email = $r->email;
         $phone = $r->mobile;
         $user_type = $r->user_type;
+        //return 1;
 
         $email_validator = Validator::make($r->all(), [
             'email' => 'required|email'
@@ -111,7 +112,6 @@ class ApiController extends Controller
             $data['message'] = 'Invalid Mobile Number!';  
             return json_encode($data);
         }
-        
         //$password = $r->password;
         $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $charactersLength = strlen($characters);
@@ -135,6 +135,46 @@ class ApiController extends Controller
                 $insertVendor->created_at = date("Y-m-d H:i:s");
                 $insertVendor->updated_at = date("Y-m-d H:i:s");
                 $insertVendor->save();
+                
+                $to = "$email";
+                $subject = "VMandi - Registered Successfully";
+                
+                $message = "
+                <html>
+                <head>
+                <title>VMandi - Registered Successfully</title>
+                </head>
+                <body>
+                <p>Hello ".$name."</p>
+                <p>Please find your login details below: </p>
+                <table>
+                <tr>
+                <th>Name</th>
+                <th>Password</th>
+                <th>Email</th>
+                <th>Mobile No.</th>
+                </tr>
+                <tr>
+                <td>".$name."</td>
+                <td>".$password."</td>
+                <td>".$email."</td>
+                <td>".$phone."</td>
+                </tr>
+                </table>
+                </body>
+                </html>
+                ";
+                
+                // Always set content-type when sending HTML email
+                $headers = "MIME-Version: 1.0" . "\r\n";
+                $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
+                
+                // More headers
+                $headers .= 'From: <monika@compaddicts.com>' . "\r\n";
+                //$headers .= 'Cc: myboss@example.com' . "\r\n";
+                
+                mail("monikacs0026@gmail.com",$subject,$message,$headers);
+
 
                 $data['status'] = 1;
                 $data['id'] = $insertVendor->id;
@@ -161,7 +201,8 @@ class ApiController extends Controller
         $data = array();
         $email_or_phone = $r->email_or_mobile;
         $password = $r->password;
-
+        // $data['password'] = $password;
+        // return json_encode($data);
         $email_validator = Validator::make($r->all(), [
             'email_or_mobile' => 'required'
         ]);
@@ -185,10 +226,11 @@ class ApiController extends Controller
         }
 
         $vendor_data = array();
-        $exist_data = vendor::where('email', $email_or_phone)->get();
+        $exist_data = vendor::where('email', $email_or_phone)->where('password', $password)->get();
+        
         if(count($exist_data) == 0){
-            $exist_phone_data = vendor::where('phone', $email_or_phone)->get();
-            if(count($exist_data) == 0){
+            $exist_phone_data = vendor::where('phone', $email_or_phone)->where('password', $password)->get();
+            if(count($exist_phone_data) == 0){
                 $data['status'] = 0;
                 $data['message'] = 'User Not Found!';
             }else{

@@ -83,7 +83,7 @@
         <div class="clearfix"></div>
         <div class="box box-primary">
             <div class="box-body">
-                <div class="row" style="padding-left: 20px; padding-right: 20px">
+                <div class="row" id="sortable" style="padding-left: 20px; padding-right: 20px">
                    <?php //echo "<pre>";print_r($categories); ?>
                    @foreach($categories as $category)
                         <?php $count_child_category = DB::table('categories')->where('parent_category', $category->id)->count(); ?>
@@ -115,8 +115,17 @@
 
 @section('scripts')
 <script>
+    $( function() {
+        $( "#sortable" ).sortable({
+            update: function( event, ui ) {
+                console.log(event);
+                console.log(ui);
+            }
+        });
+    } );
     var base_url = $('#base-url').attr('data-url');
     var _URL = window.URL || window.webkitURL;
+    
     $(document).on("change", "#saveNewCategory input[name=image]", function(){
         var this_img = $(this);
         var image = $(this).val();
