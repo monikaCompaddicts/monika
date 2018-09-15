@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Category;
 use App\Models\vendor;
-use Flash;
+use Flash; 
 use Redirect; 
 
 class AdminController extends Controller
