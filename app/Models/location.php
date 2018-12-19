@@ -47,6 +47,10 @@ class location extends Model
         'market_name' => 'required',
         'address' => 'required'
     ];
-
+    
+    public function ad_loctaion()
+    {
+        return $this->hasMany('App\Models\AdLocations', 'location');
+    }
     
 }

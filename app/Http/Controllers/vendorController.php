@@ -7,9 +7,15 @@ use App\Http\Requests\UpdatevendorRequest;
 use App\Repositories\vendorRepository;
 use App\Http\Controllers\AppBaseController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Flash;
 use Prettus\Repository\Criteria\RequestCriteria;
 use Response;
+use Redirect;
+use App\Models\vendor;
+use App\Models\Ads;
+use App\Models\AdEnquiry;
+use App\Models\Category;
 
 class vendorController extends AppBaseController
 {
@@ -18,6 +24,7 @@ class vendorController extends AppBaseController
 
     public function __construct(vendorRepository $vendorRepo)
     {
+        $this->middleware('auth');
         $this->vendorRepository = $vendorRepo;
     }
 
@@ -30,10 +37,23 @@ class vendorController extends AppBaseController
     public function index(Request $request)
     {
         $this->vendorRepository->pushCriteria(new RequestCriteria($request));
-        $vendors = $this->vendorRepository->all();
+        //$vendors = $this->vendorRepository->all();
+
+        $vendors = vendor::paginate(15);
 
         return view('vendors.index')
             ->with('vendors', $vendors);
+    }
+
+    public function getVendorsByAlpha($alpha = ''){
+        if($alpha == ''){
+            return redirect(route('vendors.index'));
+        }else{
+            $vendors = vendor::where('name', 'like', $alpha.'%')->paginate(15);
+
+            return view('vendors.index')
+                ->with('vendors', $vendors)->with('alpha', $alpha);
+        }
     }
 
     /**
@@ -57,6 +77,20 @@ class vendorController extends AppBaseController
     {
         $input = $request->all();
 
+        $exist_data = vendor::where('email', $input['email'])->get();
+        if(count($exist_data) == 0){
+            $exist_phone_data = vendor::where('phone', $input['phone'])->get();
+            if(count($exist_phone_data) == 0){
+
+            }else{
+                Flash::error('Mobile Number Already Exists!');
+                return Redirect::back()->withInput($input);               
+            }
+        }else{
+            Flash::error('Email Id Already Exists!');
+            return Redirect::back()->withInput($input);
+        }
+
         $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $charactersLength = strlen($characters);
         $randomString = '';
@@ -64,7 +98,17 @@ class vendorController extends AppBaseController
             $randomString .= $characters[rand(0, $charactersLength - 1)];
         }
         $input['password'] = $randomString;
+
         $vendor = $this->vendorRepository->create($input);
+
+        $emaildata['name'] = $vendor->name;
+        $emaildata['password'] = $vendor->password;
+        $user = new \stdClass();
+        $user->email = $vendor->email;
+        Mail::send('emails.addVendor',$emaildata, function ($message)  use ($user){
+            $message->to($user->email);
+            $message->subject('VMandi Account Password');
+        });
 
         Flash::success('Vendor saved successfully.');
 
@@ -88,7 +132,16 @@ class vendorController extends AppBaseController
             return redirect(route('vendors.index'));
         }
 
-        return view('vendors.show')->with('vendor', $vendor);
+        $vendor_ads = Ads::where('user_id', $id)->paginate(5);
+
+        $vendor_ad_ids = Ads::where('user_id', $id)->select('id')->get()->toArray();
+        $vendor_ad_id_arr = array();
+        foreach($vendor_ad_ids as $vendor_ad_id){
+            $vendor_ad_id_arr[] = $vendor_ad_id['id'];
+        }
+        $enquiry_count = AdEnquiry::whereIn('ad_id', $vendor_ad_id_arr)->get()->count();
+
+        return view('vendors.show')->with(['vendor' => $vendor, 'vendor_ads' => $vendor_ads, 'enquiry_count' => $enquiry_count]);
     }
 
     /**

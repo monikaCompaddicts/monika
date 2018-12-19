@@ -10,7 +10,7 @@
     </thead>
     <tbody>
     @foreach($vendors as $vendor)
-        <tr>
+        <tr class="vendor-data-rows">
             <td>{!! $vendor->name !!}</td>
             <td>{!! $vendor->email !!}</td>
             <td>{!! $vendor->phone !!}</td>
@@ -27,10 +27,10 @@
             <!--td>{!! $vendor->status !!}</td-->
             <td>
                 <!--{!! Form::open(['route' => ['vendors.destroy', $vendor->id], 'method' => 'delete']) !!}
-                <div class='btn-group'>
-                    <a href="{!! route('vendors.show', [$vendor->id]) !!}" class='btn btn-default btn-xs'><i class="glyphicon glyphicon-eye-open"></i></a>-->
-                    <a href="{!! route('vendors.edit', [$vendor->id]) !!}" class='btn btn-default btn-xs'><i class="glyphicon glyphicon-edit"></i></a>
-                    <a href="{{ url('/admin/send-mail/'.$vendor->id) }}" class='btn btn-primary btn-xs send-mail' data-id='{{ $vendor->id }}'>Send Mail</a>
+                <div class='btn-group'>-->
+                    <a href="{!! route('vendors.show', [$vendor->id]) !!}" class='btn btn-default btn-xs'><i class="glyphicon glyphicon-eye-open"></i></a>
+                    <a href="{!! route('vendors.edit', [$vendor->id]) !!}" class='btn btn-primary btn-xs'><i class="glyphicon glyphicon-edit"></i></a>
+                    <!--a href="{{ url('/send-mail/'.$vendor->id) }}" class='btn btn-primary btn-xs send-mail' data-id='{{ $vendor->id }}'>Send Mail</a-->
                     <!--{!! Form::button('<i class="glyphicon glyphicon-trash"></i>', ['type' => 'submit', 'class' => 'btn btn-danger btn-xs', 'onclick' => "return confirm('Are you sure?')"]) !!}-->
                 </div>
                 <!--{!! Form::close() !!}--> 
@@ -39,3 +39,4 @@
     @endforeach
     </tbody>
 </table>
+{{ $vendors->render() }}

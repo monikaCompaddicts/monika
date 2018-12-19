@@ -1,0 +1,1590 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use App\Models\Category;
+use App\Models\location;
+use App\Models\banner;
+use App\Models\vendor;
+use App\Models\Ads;
+use App\Models\AdImages;
+use App\Models\Customer;
+use App\Models\ReceiveAlertUsers;
+use App\Models\Advertisement;
+use App\Models\UserType;
+use App\Models\CMS;
+use App\Models\CmsTitle;
+use App\Models\AdEnquiry;
+use Validator;
+use File;
+use DB;
+
+class ApiController extends Controller
+{
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        //header('Access-Control-Allow-Origin: *');        
+        //header('Access-Control-Allow-Headers: Content-type, X-Auth-Token, Authorization, Origin');
+       // $this->middleware('auth');
+    }
+
+    /**
+     * Show the application dashboard.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function testApi(){
+        $data = array('id' => 'tgb','name' => 'qwert','age' => 'ssdfs');
+        return json_encode($data);
+    }
+    
+    public function getCategory()    {
+        $category_arr = array();
+        $categories = Category::where('parent_category', 0)->orderBy('category_order', 'asc')->get();
+        //return json_encode($categories);
+        for($i = 0; $i<count($categories); $i++){
+            $category_arr[$i]['id'] = $categories[$i]->id;
+            $category_arr[$i]['name'] = $categories[$i]->name;
+            $category_arr[$i]['image'] = $categories[$i]->image;
+            $category_arr[$i]['status'] = $categories[$i]->status;
+            $category_arr[$i]['description'] = $categories[$i]->description;
+
+            $child_categories = Category::where('parent_category', $categories[$i]->id)->get();
+            if(count($child_categories) == 0){
+               // $category_arr[$i]['child_category'] = array();
+            }else{
+                for($j = 0; $j<count($child_categories); $j++){
+                    $category_arr[$i]['child_category'][$j]['id'] = $child_categories[$j]->id;
+                    $category_arr[$i]['child_category'][$j]['name'] = $child_categories[$j]->name;
+                    $category_arr[$i]['child_category'][$j]['image'] = $child_categories[$j]->image;
+                    $category_arr[$i]['child_category'][$j]['status'] = $child_categories[$j]->status;
+                    $category_arr[$i]['child_category'][$j]['description'] = $child_categories[$j]->description;
+                }
+            }
+        }
+        
+        return json_encode($category_arr);
+
+    }
+
+    public function getLocations()    {
+        $data = array();
+        $locations = location::get();
+        for($i=0; $i<count($locations); $i++){
+            $data[$i]['id'] = $locations[$i]->id;
+            $data[$i]['market_name'] = $locations[$i]->market_name;
+            $data[$i]['address'] = $locations[$i]->address;
+        }
+        
+        return json_encode($data);
+
+    }
+
+    public function getbanners()    {
+        $data = array();
+        $banner = banner::first();
+        //for($i=0; $i<count($locations); $i++){
+            $data['id'] = $banner->id;
+            $data['banner_heading'] = $banner->banner_heading;
+            $data['banner_description'] = $banner->banner_description;
+            $data['banner_image'] = $banner->banner_image;
+       // }
+        
+        return json_encode($data);
+
+    }
+
+    public function addVendor(Request $r){
+        $data = array();
+        $name = $r->name;
+        $email = $r->email;
+        $phone = $r->mobile;
+        $user_type = $r->user_type;
+        //return 1;
+        $name_validator = Validator::make($r->all(), [
+            'name' => 'required'
+        ]);
+
+        $email_validator = Validator::make($r->all(), [
+            'email' => 'required|email'
+        ]);
+
+        $phone_validator = Validator::make($r->all(), [
+            'mobile' => 'required|min:10|max:10'
+        ]);
+
+        if ($name_validator->fails()) {
+            $data['status'] = 0;
+            $data['err_key'] = 'name';
+            $data['message'] = 'Invalid name type!';
+            return json_encode($data);
+        }
+
+        if ($email_validator->fails()) {
+            $data['status'] = 0;
+            $data['err_key'] = 'email';
+            $data['message'] = 'Invalid Email Id!!';
+            return json_encode($data);
+        }
+
+        if ($phone_validator->fails()) {
+            $data['status'] = 0;
+            $data['err_key'] = 'mobile';
+            $data['message'] = 'Invalid Mobile Number!';  
+            return json_encode($data);
+        }
+        //$password = $r->password;
+        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $charactersLength = strlen($characters);
+        $randomString = '';
+        for ($i = 0; $i < 8; $i++) {
+            $randomString .= $characters[rand(0, $charactersLength - 1)];
+        }
+
+        $password = $randomString;
+        
+        if($user_type == 1){
+            $exist_data = vendor::where('email', $email)->get();
+            if(count($exist_data) == 0){
+                $exist_phone_data = vendor::where('phone', $phone)->get();
+                if(count($exist_phone_data) == 0){
+                    $insertVendor = new vendor();
+                    $insertVendor->name = $name;
+                    $insertVendor->email = $email;
+                    $insertVendor->phone = $phone;
+                    $insertVendor->password = $password;
+                    $insertVendor->status = 1;
+                    $insertVendor->created_at = date("Y-m-d H:i:s");
+                    $insertVendor->updated_at = date("Y-m-d H:i:s");
+                    $insertVendor->save();
+
+                    $insertUserType = new UserType();
+                    $insertUserType->user_type = $user_type;
+                    $insertUserType->user_id = $insertVendor->id;
+                    $insertUserType->save();
+    
+                    $emaildata['name'] = $name;
+                    $emaildata['password'] = $password;
+                    $user = new \stdClass();
+                    $user->email = $email;
+    
+                    Mail::send('emails.addVendor',$emaildata, function ($message)  use ($user){
+                        $message->to($user->email);
+                        $message->subject('VMandi Account Password');
+                    });
+    
+                    $data['status'] = 1;
+                    $data['id'] = $insertVendor->id;
+                    $data['name'] = $insertVendor->name;
+                    $data['email'] = $insertVendor->email;
+                    $data['phone'] = $insertVendor->phone;
+                    $data['status'] = $insertVendor->status;
+                    $data['address'] = '';
+                    $data['city'] = '';
+                    $data['pincode'] = '';
+                    $data['house'] = '';
+                    $data['message'] = 'Registered Successfully.';
+                }else{
+                    $data['status'] = 0;
+                    $data['err_key'] = 'mobile';
+                    $data['message'] = 'Mobile Number Already Exists!';                
+                }
+            }else{
+                $data['status'] = 0;
+                $data['err_key'] = 'email';
+                $data['message'] = 'Email Id Already Exists!';
+            }
+        }
+        else{
+            $exist_data = Customer::where('email', $email)->get();
+            if(count($exist_data) == 0){
+                $exist_phone_data = Customer::where('phone', $phone)->get();
+                if(count($exist_phone_data) == 0){
+                    $insertCustomer = new Customer();
+                    $insertCustomer->name = $name;
+                    $insertCustomer->email = $email;
+                    $insertCustomer->phone = $phone;
+                    $insertCustomer->password = $password;
+                    $insertCustomer->status = 1;
+                    $insertCustomer->added_on = date("Y-m-d H:i:s");
+                    $insertCustomer->updated_on = date("Y-m-d H:i:s");
+                    $insertCustomer->save();
+
+                    $insertUserType = new UserType();
+                    $insertUserType->user_type = $user_type;
+                    $insertUserType->user_id = $insertCustomer->id;
+                    $insertUserType->save();
+    
+                    $emaildata['name'] = $name;
+                    $emaildata['password'] = $password;
+                    $user = new \stdClass();
+                    $user->email = $email;
+    
+                    Mail::send('emails.addVendor',$emaildata, function ($message)  use ($user){
+                        $message->to($user->email);
+                        $message->subject('VMandi Account Password');
+                    });
+    
+                    $data['status'] = 1;
+                    $data['id'] = $insertCustomer->id;
+                    $data['name'] = $insertCustomer->name;
+                    $data['email'] = $insertCustomer->email;
+                    $data['phone'] = $insertCustomer->phone;
+                    $data['status'] = $insertCustomer->status;
+                    $data['address'] = '';
+                    $data['city'] = '';
+                    $data['pincode'] = '';
+                    $data['house'] = '';
+                    $data['message'] = 'Registered Successfully.';
+                }else{
+                    $data['status'] = 0;
+                    $data['err_key'] = 'mobile';
+                    $data['message'] = 'Mobile Number Already Exists!';                
+                }
+            }else{
+                $data['status'] = 0;
+                $data['err_key'] = 'email';
+                $data['message'] = 'Email Id Already Exists!';
+            }
+        }
+
+        return json_encode($data);
+    }
+
+    public function loginVendor(Request $r){
+        $data = array();
+        $email_or_phone = $r->email_or_mobile;
+        $password = $r->password;
+        $user_type = $r->user_type;
+
+        $email_validator = Validator::make($r->all(), [
+            'email_or_mobile' => 'required'
+        ]);
+
+        $password_validator = Validator::make($r->all(), [
+            'password' => 'required'
+        ]);
+
+        if ($email_validator->fails()) {
+            $data['status'] = 0;
+            $data['err_key'] = 'email';
+            $data['message'] = 'Email or Mobile is required!';
+            return json_encode($data);
+        }
+
+        if ($password_validator->fails()) {
+            $data['status'] = 0;
+            $data['err_key'] = 'password';
+            $data['message'] = 'Password Required!';  
+            return json_encode($data);
+        }
+
+        if($user_type == 1){
+            $vendor_data = array();
+            $exist_data = vendor::where('email', $email_or_phone)->where('password', $password)->get();
+            
+            if(count($exist_data) == 0){
+                $exist_phone_data = vendor::where('phone', $email_or_phone)->where('password', $password)->get();
+                if(count($exist_phone_data) == 0){
+                    $data['status'] = 0;
+                    $data['message'] = 'User Not Found!';
+                }else{
+                    $vendor_data = $exist_phone_data;
+                }
+            }else{
+                $vendor_data = $exist_data;
+            }
+
+            if(count($vendor_data) != 0){
+                $data['status'] = 1;
+                $data['user_type'] = 1;
+                $data['id'] = $vendor_data[0]->id;
+                $data['name'] = $vendor_data[0]->name;
+                $data['email'] = $vendor_data[0]->email;
+                $data['phone'] = $vendor_data[0]->phone;
+                $data['address'] = $vendor_data[0]->address;
+                $data['city'] = $vendor_data[0]->city;
+                $data['pincode'] = $vendor_data[0]->pincode;
+                $data['house'] = $vendor_data[0]->house;
+                $data['message'] = 'LoggedIn Successfully.';
+            }
+        }
+        else{
+            $customer_data = array();
+            $exist_data = Customer::where('email', $email_or_phone)->where('password', $password)->get();
+            
+            if(count($exist_data) == 0){
+                $exist_phone_data = Customer::where('phone', $email_or_phone)->where('password', $password)->get();
+                if(count($exist_phone_data) == 0){
+                    $data['status'] = 0;
+                    $data['message'] = 'User Not Found!';
+                }else{
+                    $customer_data = $exist_phone_data;
+                }
+            }else{
+                $customer_data = $exist_data;
+            }
+
+            if(count($customer_data) != 0){
+                $data['status'] = 1;
+                $data['user_type'] = 2;
+                $data['id'] = $customer_data[0]->id;
+                $data['name'] = $customer_data[0]->name;
+                $data['email'] = $customer_data[0]->email;
+                $data['phone'] = $customer_data[0]->phone;
+                $data['address'] = $customer_data[0]->address;
+                $data['city'] = $customer_data[0]->city;
+                $data['pincode'] = $customer_data[0]->pincode;
+                $data['house'] = $customer_data[0]->house;
+                //$data['status'] = $exist_data[0]->status;
+                $data['message'] = 'LoggedIn Successfully.';
+            }
+        }
+        return json_encode($data);
+    }
+
+    public function forgotPassword(Request $r){
+        $data = array();
+        $email_or_phone = $r->email_or_mobile;
+        $user_type = $r->user_type;
+
+        $validator = Validator::make($r->all(), [
+            'email_or_mobile' => 'required',
+            'user_type' => 'required'
+        ]);
+
+        if ($validator->fails()) {
+
+            $failedRules = $validator->failed();
+
+            if(isset($failedRules['email_or_mobile'])) {
+                $data['status'] = 0;
+                $data['email_or_mobile'] = 'Email or Mobile is required!';                
+            }
+
+            if(isset($failedRules['user_type'])) {
+                $data['status'] = 0;
+                $data['user_type'] = 'User type is required!';                
+            }
+
+            return json_encode($data);
+        }
+
+        $user_email_data = array();
+        $user_phone_data = array();
+
+        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $charactersLength = strlen($characters);
+        $randomString = '';
+        for ($i = 0; $i < 8; $i++) {
+            $randomString .= $characters[rand(0, $charactersLength - 1)];
+        }
+
+        $password = $randomString;
+
+        if($user_type == 1){
+            $vendor_data = array();
+            $exist_data = vendor::where('email', $email_or_phone)->get();
+            
+            if(count($exist_data) == 0){
+                $exist_phone_data = vendor::where('phone', $email_or_phone)->get();
+                if(count($exist_phone_data) == 0){
+                    $data['status'] = 0;
+                    $data['message'] = 'Vendor Not Found!';
+                }else{
+                    $user_phone_data = $exist_phone_data;
+                    $id = $user_phone_data[0]->id;
+                    vendor::where('id', $id)->update(['password' => $password]);
+                }
+            }else{
+                $user_email_data = $exist_data;
+                $id = $user_email_data[0]->id;
+                vendor::where('id', $id)->update(['password' => $password]);
+            }
+        }
+        else{
+            $customer_data = array();
+            $exist_data = Customer::where('email', $email_or_phone)->get();
+            
+            if(count($exist_data) == 0){
+                $exist_phone_data = Customer::where('phone', $email_or_phone)->get();
+                if(count($exist_phone_data) == 0){
+                    $data['status'] = 0;
+                    $data['message'] = 'Customer Not Found!';
+                }else{
+                    $user_phone_data = $exist_phone_data;
+                    $id = $user_phone_data[0]->id;
+                    Customer::where('id', $id)->update(['password' => $password]);
+                }
+            }else{
+                $user_email_data = $exist_data;
+                $id = $user_phone_data[0]->id;
+                Customer::where('id', $id)->update(['password' => $password]);
+            }
+        }
+        
+        if(count($user_email_data) != 0){
+            $name = $user_email_data[0]->name;
+            $email = $user_email_data[0]->email;
+            $phone = $user_email_data[0]->phone;
+
+            $emaildata['name'] = $name;
+            $emaildata['password'] = $password;
+            $user = new \stdClass();
+            $user->email = $email;
+
+            Mail::send('emails.forgotPassword',$emaildata, function ($message)  use ($user){
+                $message->to($user->email);
+                $message->subject('VMandi Account Frogot Password');
+            });
+            
+            $data['status'] = 1;
+            $data['message'] = "Your password has been updated and send to your email id successfully.";
+        }
+
+        if(count($user_phone_data) != 0){
+            $name = $user_phone_data[0]->name;
+            $email = $user_phone_data[0]->email;
+            $phone = $user_phone_data[0]->phone;
+            
+            $data['status'] = 1;
+            $data['message'] = "Your password has been updated and send to your mobile number successfully.";
+        }
+        
+        return json_encode($data);
+    }
+
+    public function getSubCategory($parent_id){
+        $categories = Category::where('parent_category', $parent_id)->get();
+        $category_arr = array();
+        //return json_encode($categories);
+        if(count($categories) > 0){
+            $category_arr['status'] = 1;
+            for($i = 0; $i<count($categories); $i++){
+                $category_arr[$i]['id'] = $categories[$i]->id;
+                $category_arr[$i]['name'] = $categories[$i]->name;
+                $category_arr[$i]['image'] = $categories[$i]->image;
+                $category_arr[$i]['status'] = $categories[$i]->status;
+            }
+        }else{
+            $category_arr['status'] = 0;
+        }
+        
+        return json_encode($category_arr);
+    }
+
+    public function postAd(Request $r){
+        $data = array();
+
+        $user_id = $r->user_id;
+        //echo "<pre>";print_r($r->all());exit;
+        if($r->sub_category_id == ''){
+            $category_id = $r->category_id;
+        }else{
+            $category_id = $r->sub_category_id;
+        }
+        
+        $title = $r->title;
+        $description = $r->description;
+        $added_on = date('Y-m-d H:i:s');
+        $valid_till = date('Y-m-d H:i:s', strtotime(0));
+        $status = 1;
+        $files = $r->file();
+
+        $user_validator = Validator::make($r->all(), [
+            'user_id' => 'required',
+        ]);
+        if ($user_validator->fails()) {
+            $data['status'] = 0;
+            $data['err_key'] = 'user_id';
+            $data['message'] = 'Login to Post Ad!';
+            return json_encode($data);
+        }
+        
+        $cat_validator = Validator::make($r->all(), [
+            'category_id' => 'required',
+        ]);
+        if ($cat_validator->fails()) {
+            $data['status'] = 0;
+            $data['err_key'] = 'category_id';
+            $data['message'] = 'Category is required!';
+            return json_encode($data);
+        }
+        
+        $titlet_validator = Validator::make($r->all(), [
+            'title' => 'required',
+        ]);
+        if ($titlet_validator->fails()) {
+            $data['status'] = 0;
+            $data['err_key'] = 'title';
+            $data['message'] = 'Title is required!';
+            return json_encode($data);
+        }
+        $data[0] = count($files);
+        
+        if(count($files) == 0){
+            $data['status'] = 0;
+            $data['err_key'] = 'file';
+            $data['message'] = 'Image is required!';
+            return json_encode($data);
+        }else{            
+            $img_ext_arr = ["jpg", "jpeg", "png"];
+            foreach($files as $file){
+                $image_ext = $file->getClientOriginalExtension();
+                if (!in_array($image_ext, $img_ext_arr)){
+                    $data['status'] = 0;
+                    $data['err_key'] = 'file';
+                    $data['message'] = 'Invalid File Type!';
+                    return json_encode($data);
+                }
+            }
+        }
+        
+        $insertAd = new Ads();
+        $insertAd->user_id = $user_id;
+        $insertAd->category_id = $category_id;
+        $insertAd->title = $title;
+        $insertAd->description = $description;
+        $insertAd->added_on = $added_on;
+        $insertAd->valid_till = $valid_till;
+        $insertAd->status = $status;
+        $insertAd->save();
+        $ad_id = $insertAd->id;
+
+        $i = 0;
+        foreach($files as $file){
+         
+            $image = $file;
+            $image_name = $ad_id.'_'.time().'_'.$i.'.'.$image->getClientOriginalExtension();
+      //       if (! File::exists(public_path('image/ad_images/'.$category_id))) {
+            //     File::makeDirectory('image/ad_images/'.$category_id, $mode = 0777, true, true);
+            // }
+            $destinationPath = public_path('image/ad_images/');
+            $image_url = url('public/image/ad_images/'.$image_name);
+            $image->move($destinationPath, $image_name);
+
+            $insertAdImage = new AdImages();
+            $insertAdImage->ad_id = $ad_id;
+            $insertAdImage->image = $image_url;
+            $insertAdImage->save();
+            $i++;
+        }
+
+        $data['status'] = 1;
+        $data['ad_id'] = $ad_id;
+        $data['message'] = 'Ad Inserted Successfully.';
+
+        return json_encode($data);
+    }
+
+    public function getAd($vendor_id = ''){
+        $data = array();
+
+        if($vendor_id == ''){
+            $ad_data = Ads::orderBy('id', 'desc')->get();
+        }else{
+            $ad_data = Ads::where('user_id', $vendor_id)->orderBy('id', 'desc')->get();
+        }
+
+        if(count($ad_data) == 0){
+            $data['status'] = 0;
+            $data['message'] = 'No Ads Found.';
+        }else{
+            $data['status'] = 1;
+            $i = 0;
+            foreach($ad_data as $ad){
+                $category = Category::where('id', $ad->category_id)->get();
+               // echo "<pre>";print_r($category);exit;
+                $data[$i]['id'] = $ad->id;
+                $data[$i]['category'] = $category[0]->name;
+                $data[$i]['title'] = $ad->title;
+                $data[$i]['description'] = $ad->description;
+                
+                $images = AdImages::where('ad_id', $ad->id)->get();
+                $j = 0;
+                foreach($images as $img){
+                    $data[$i]['images'][$j] = $img->image;
+                    $j++;
+                }
+                $i++;
+            }
+        }
+        return json_encode($data);
+    }
+    public function getAdByCategory(Request $r)
+    {
+        $category_id = $r->cat_id;
+        $keyword = $r->keyword;
+
+        if($category_id != '' && $keyword == ''){
+            $ids_arr = [$category_id];
+            $sub_categories = Category::where('parent_category', $category_id)->get();
+           
+            if(count($sub_categories) > 0) {
+                foreach ($sub_categories as $sub_category) {
+                    array_push($ids_arr, $sub_category->id);     
+                }     
+            }
+            
+            $ads = [];
+           $ads_result = Ads::whereIn('category_id', $ids_arr)->get();
+           foreach ($ads_result as $key => $value) {
+                $ads_images = AdImages::where('ad_id', $value->id)->get();     
+                $ads[$key] = $value;
+                $imgs = [];
+                foreach ($ads_images as $ad_iamge) {
+                    array_push($imgs, $ad_iamge->image);
+                }
+                $ads[$key]['images'] = $imgs;
+
+            }
+            return json_encode($ads);
+        }
+        else if($category_id != '' && $keyword != ''){
+            $ids_arr = [$category_id];
+            $sub_categories = Category::where('parent_category', $category_id)->get();
+           
+            if(count($sub_categories) > 0) {
+                foreach ($sub_categories as $sub_category) {
+                    array_push($ids_arr, $sub_category->id);     
+                }     
+            }
+            
+            $ads = [];
+           //$ads_result = Ads::whereIn('category_id', $ids_arr)->get();
+           $ads_result = Ads::whereIn('category_id', $ids_arr)
+                        ->where(function($query) use ($keyword)
+                        {
+                            $query->where('title', 'like', '%'.$keyword.'%')
+                                  ->orWhere('description', 'like', '%'.$keyword.'%');
+                        })
+                        ->get();
+
+           foreach ($ads_result as $key => $value) {
+                $ads_images = AdImages::where('ad_id', $value->id)->get();     
+                $ads[$key] = $value;
+                $imgs = [];
+                foreach ($ads_images as $ad_iamge) {
+                    array_push($imgs, $ad_iamge->image);
+                }
+                $ads[$key]['images'] = $imgs;
+
+            }
+            return json_encode($ads);
+        }
+        else if($category_id == '' && $keyword != ''){
+            $ads = [];
+            //$ads_result = Ads::whereIn('category_id', $ids_arr)->get();
+            $ads_result = Ads::where('title', 'like', '%'.$keyword.'%')->orWhere('description', 'like', '%'.$keyword.'%')->get();
+
+            foreach ($ads_result as $key => $value) {
+                $ads_images = AdImages::where('ad_id', $value->id)->get();     
+                $ads[$key] = $value;
+                $imgs = [];
+                foreach ($ads_images as $ad_iamge) {
+                    array_push($imgs, $ad_iamge->image);
+                }
+                $ads[$key]['images'] = $imgs;
+
+            }
+            return json_encode($ads);
+        }else{
+            return 0;
+        }
+
+    }
+
+    public function addCategory()
+    {
+        
+        $name = 'Cars';
+        $parent_category = 1;
+        $added_on = date('Y-m-d H:i:s');
+        $status = 1;
+        
+        $insertCategory = new Category();
+        $insertCategory->name = $name;
+        $insertCategory->parent_category = $parent_category;
+        $insertCategory->added_on = $added_on;
+        $insertCategory->status = $status;
+        $insertCategory->save();
+        //echo "<pre>";print_r(Category::get());exit;
+        return view('home');
+    }
+
+    public function receiveAlertUser(Request $r){
+        $data = array();
+        $category = $r->category;
+        $locality = $r->locality;
+        $email = $r->email;
+        $mobile = $r->mobile;
+
+        $category_validator = Validator::make($r->all(), [
+            'category' => 'required'
+        ]);
+
+        $locality_validator = Validator::make($r->all(), [
+            'locality' => 'required'
+        ]);
+
+        $email_validator = Validator::make($r->all(), [
+            'email' => 'required|email'
+        ]);
+
+        $phone_validator = Validator::make($r->all(), [
+            'mobile' => 'required|min:10|max:10'
+        ]);
+
+        if ($category_validator->fails()) {
+            $data['status'] = 0;
+            $data['err_key'] = 'category';
+            $data['message'] = 'Please Select Category!';
+            return json_encode($data);
+        }
+
+        if ($locality_validator->fails()) {
+            $data['status'] = 0;
+            $data['err_key'] = 'locality';
+            $data['message'] = 'Please Select Locality!';
+            return json_encode($data);
+        }
+
+        if ($email_validator->fails()) {
+            $data['status'] = 0;
+            $data['err_key'] = 'email';
+            $data['message'] = 'Invalid Email Id!!';
+            return json_encode($data);
+        }
+
+        if ($phone_validator->fails()) {
+            $data['status'] = 0;
+            $data['err_key'] = 'mobile';
+            $data['message'] = 'Invalid Mobile Number!';  
+            return json_encode($data);
+        }
+
+        $insertAlerts = new ReceiveAlertUsers();
+        $insertAlerts->category = $category;
+        $insertAlerts->locality = $locality;
+        $insertAlerts->email = $email;
+        $insertAlerts->mobile = $mobile;
+        $insertAlerts->save();
+
+        $data['status'] = 1;
+        $data['message'] = 'Successfully Subscribed.';
+        return json_encode($data);
+    }
+
+    public function searchAds(Request $r) {
+        // location based search logic is to done
+        $data = [];
+        $category_id = $r->category;
+        $ad_data = [];
+        if($category_id != null) {
+            $ad_data = Ads::where('category_id', $category_id)->get();            ;
+        }
+        
+        if(count($ad_data) == 0){
+            $data['status'] = 0;
+            $data['message'] = 'No Ads Found.';
+        }else{
+            $data['status'] = 1;
+            $i = 0;
+            foreach($ad_data as $ad){
+                $category = Category::where('id', $ad->category_id)->get();
+               // echo "<pre>";print_r($category);exit;
+                $data[$i]['id'] = $ad->id;
+                $data[$i]['category'] = $category[0]->name;
+                $data[$i]['title'] = $ad->title;
+                $data[$i]['description'] = $ad->description;
+                
+                $images = AdImages::where('ad_id', $ad->id)->get();
+                $j = 0;
+                foreach($images as $img){
+                    $data[$i]['images'][$j] = $img->image;
+                    $j++;
+                }
+                $i++;
+            }
+        }
+        return json_encode($data);
+    }
+    
+    public function getAdvertisement(){
+        $data = array();
+
+        $advertisement_data = Advertisement::get();
+
+        if(count($advertisement_data) == 0){
+            $data['status'] = 0;
+            $data['message'] = 'No Advertisement Found.';
+        }else{
+            $data['status'] = 1;
+            $i = 0;
+            foreach($advertisement_data as $ad){
+                $data[$i]['id'] = $ad->id;
+                $data[$i]['title'] = $ad->title;
+                $data[$i]['image'] = $ad->image;
+                $data[$i]['link'] = $ad->link;
+                $i++;
+            }
+        }
+        return json_encode($data);
+    }
+    
+    public function getCMS(){
+        $data = array();
+        $cms_data = CmsTitle::get();
+        //echo "<pre>";print_r($cms_data);exit;
+        foreach($cms_data as $cms){
+            $content = CMS::where('title', $cms->id)->get();
+            if(count($content) == 0){
+                $data[$cms->title_key] = '';
+            }else{
+                $data[$cms->title_key] = $content[0]->content;
+            }
+        }
+        return json_encode($data);
+    }
+
+    public function updateUserProfile(Request $r){
+
+        $data = array();
+        $name = $r->name;
+        $email = $r->email;
+        $phone = $r->mobile;
+        $user_id = $r->user_id;
+        $user_type = $r->user_type;
+
+        $name_validator = Validator::make($r->all(), [
+            'name' => 'required|regex:/^[\pL\s\-]+$/u|min:2'
+        ]);
+
+        $email_validator = Validator::make($r->all(), [
+            'email' => 'required|email'
+        ]);
+
+        $phone_validator = Validator::make($r->all(), [
+            'mobile' => 'required|min:10|max:10'
+        ]);
+
+        if ($name_validator->fails()) {
+            $data['status'] = 0;
+            $data['err_key'] = 'name';
+            $data['message'] = 'Invalid Name Type!';
+            return json_encode($data);
+        }
+
+        if ($email_validator->fails()) {
+            $data['status'] = 0;
+            $data['err_key'] = 'email';
+            $data['message'] = 'Invalid Email Id!!';
+            return json_encode($data);
+        }
+
+        if ($phone_validator->fails()) {
+            $data['status'] = 0;
+            $data['err_key'] = 'mobile';
+            $data['message'] = 'Invalid Mobile Number!';  
+            return json_encode($data);
+        }
+        //echo $phone;exit;
+        if($user_type == 1){
+            $exist_data = vendor::where('email', $email)->where('id', '!=', $user_id)->get();
+            if(count($exist_data) == 0){
+                $exist_phone_data = vendor::where('phone', $phone)->where('id', '!=', $user_id)->get();
+                if(count($exist_phone_data) == 0){
+
+                    vendor::where('id', $user_id)->update(['name' => $name, 'email' => $email, 'phone' => $phone, 'updated_at' => date("Y-m-d H:i:s")]);
+                    
+                    $data['status'] = 1;
+                    $data['name'] = $name;
+                    $data['email'] = $email;
+                    $data['phone'] = $phone;
+                    $data['message'] = 'Updated Successfully.';
+                }else{
+                    $data['status'] = 0;
+                    $data['err_key'] = 'mobile';
+                    $data['message'] = 'Mobile Number Already Exists!';                
+                }
+            }else{
+                $data['status'] = 0;
+                $data['err_key'] = 'email';
+                $data['message'] = 'Email Id Already Exists!';
+            }
+        }
+        else{
+            $exist_data = Customer::where('email', $email)->where('id', '!=', $user_id)->get();
+            if(count($exist_data) == 0){
+                $exist_phone_data = Customer::where('phone', $phone)->where('id', '!=', $user_id)->get();
+                if(count($exist_phone_data) == 0){
+
+                    Customer::where('id', $user_id)->update(['name' => $name, 'email' => $email, 'phone' => $phone, 'updated_on' => date("Y-m-d H:i:s")]);
+    
+                    $data['status'] = 1;
+                    $data['name'] = $name;
+                    $data['email'] = $email;
+                    $data['phone'] = $phone;
+                    $data['message'] = 'Updated Successfully.';
+                }else{
+                    $data['status'] = 0;
+                    $data['err_key'] = 'mobile';
+                    $data['message'] = 'Mobile Number Already Exists!';                
+                }
+            }else{
+                $data['status'] = 0;
+                $data['err_key'] = 'email';
+                $data['message'] = 'Email Id Already Exists!';
+            }
+        }
+
+        return json_encode($data);
+
+    }
+
+    public function updateUserAddress(Request $r){
+
+        $data = array();
+        $address = $r->address;
+        $city = $r->city;
+        $pincode = $r->pincode;
+        $house = $r->house;
+        $user_id = $r->user_id;
+        $user_type = $r->user_type;
+
+        $validator = Validator::make($r->all(), [
+            'address' => 'required',
+            'city' => 'required',
+            'pincode' => 'required|min:6|max:6',
+            'house' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+
+            $failedRules = $validator->failed();
+
+            if(isset($failedRules['address'])) {
+                $data['status'] = 0;
+                $data['address'] = 'Address is required!';                
+            }
+
+            if(isset($failedRules['city'])) {
+                $data['status'] = 0;
+                $data['city'] = 'City is required!';                
+            }
+
+            if(isset($failedRules['house'])) {
+                $data['status'] = 0;
+                $data['house'] = 'City is required!';                
+            }
+
+            if(isset($failedRules['pincode']['Required'])) {
+                $data['status'] = 0;
+                $data['pincode_req'] = 'Pincode is required!';                
+            }
+
+            if(isset($failedRules['pincode']['Min'])) {
+                $data['status'] = 0;
+                $data['pincode_min'] = 'Pincode should have minimum 6 digits!';                
+            }
+
+            if(isset($failedRules['pincode']['Max'])) {
+                $data['status'] = 0;
+                $data['pincode_max'] = 'Pincode should have maximum 6 digits!';                
+            }
+
+            return json_encode($data);
+        }
+
+        if($user_type == 1){
+            vendor::where('id', $user_id)->update(['address' => $address, 'city' => $city, 'pincode' => $pincode, 'house' => $house, 'updated_at' => date("Y-m-d H:i:s")]);
+                    
+            $data['status'] = 1;
+            $data['address'] = $address;
+            $data['city'] = $city;
+            $data['house'] = $house;
+            $data['pincode'] = $pincode;
+            $data['message'] = 'Updated Successfully.';
+        }
+        else{
+            Customer::where('id', $user_id)->update(['address' => $address, 'city' => $city, 'pincode' => $pincode, 'house' => $house, 'updated_on' => date("Y-m-d H:i:s")]);
+    
+            $data['status'] = 1;
+            $data['address'] = $address;
+            $data['city'] = $city;
+            $data['house'] = $house;
+            $data['pincode'] = $pincode;
+            $data['message'] = 'Updated Successfully.';
+        }
+
+        return json_encode($data);
+
+    }
+
+    public function getUserDetails(Request $r){
+        $user_id = $r->user_id;
+        $user_type = $r->user_type;
+
+        if($user_type == 1){
+            $user_data = vendor::where('id', $user_id)->first();
+            
+            if($user_data == ''){
+                $data['status'] = 0;
+                $data['status'] = 'User not found!';
+            }else{
+                $data['status'] = 1;
+                $data['name'] = $user_data->name;
+                $data['email'] = $user_data->email;
+                $data['phone'] = $user_data->phone;
+                $data['address'] = $user_data->address;
+                $data['city'] = $user_data->city;
+                $data['pincode'] = $user_data->pincode;
+                $data['house'] = $user_data->house;
+            }
+        }else{
+            $user_data = Customer::where('id', $user_id)->first();
+            if($user_data == ''){
+                $data['status'] = 0;
+                $data['status'] = 'User not found!';
+            }else{
+                $data['status'] = 1;
+                $data['name'] = $user_data->name;
+                $data['email'] = $user_data->email;
+                $data['phone'] = $user_data->phone;
+                $data['address'] = $user_data->address;
+                $data['city'] = $user_data->city;
+                $data['pincode'] = $user_data->pincode;
+                $data['house'] = $user_data->house;
+            }
+        }
+
+        return json_encode($data);
+    }
+
+    public function changePassword(Request $r){
+        $data = array();
+        $old_pwd = $r->old_pwd;
+        $new_pwd = $r->new_pwd;
+        $confirm_pwd = $r->confirm_pwd;
+        $user_id = $r->user_id;
+        $user_type = $r->user_type;
+
+        $validator = Validator::make($r->all(), [
+            'old_pwd' => 'required',
+            'new_pwd' => 'required',
+            'confirm_pwd' => 'required'
+        ]);
+
+        if ($validator->fails()) {
+
+            $failedRules = $validator->failed();
+
+            if(isset($failedRules['old_pwd'])) {
+                $data['status'] = 0;
+                $data['old_pwd'] = 'Old Password is required!';                
+            }
+
+            if(isset($failedRules['new_pwd'])) {
+                $data['status'] = 0;
+                $data['new_pwd'] = 'New Password is required!';                
+            }
+
+            if(isset($failedRules['confirm_pwd'])) {
+                $data['status'] = 0;
+                $data['confirm_pwd'] = 'Confirm Password is required!';                
+            }
+
+            return json_encode($data);
+        }
+
+        if($user_type == 1){
+            $user_data = vendor::where('id', $user_id)->where('password', $old_pwd)->first();
+            if($user_data == ''){
+                $data['status'] = 0;
+                $data['old_pwd'] = 'Invalid Old Password!';
+            }else{
+                if($new_pwd == $confirm_pwd){
+                    vendor::where('id', $user_id)->update(['password' => $new_pwd]);
+                    $data['status'] = 1;
+                    $data['message'] = 'Your Password Updated Successfully.';
+                }else{
+                    $data['status'] = 0;
+                    $data['confirm_pwd'] = 'New Password and Confirm Password should be same!';
+                }
+            }
+        }else{
+            $user_data = Customer::where('id', $user_id)->where('password', $old_pwd)->first();
+            if($user_data == ''){
+                $data['status'] = 0;
+                $data['old_pwd'] = 'Invalid Old Password!';
+            }else{
+                if($new_pwd == $confirm_pwd){
+                    Customer::where('id', $user_id)->update(['password' => $new_pwd]);
+                    $data['status'] = 1;
+                    $data['message'] = 'Your Password Updated Successfully.';
+                }else{
+                    $data['status'] = 0;
+                    $data['confirm_pwd'] = 'New Password and Confirm Password should be same!';
+                }
+            }
+        }
+
+        return json_encode($data);
+    }
+
+    public function getDashboard(Request $r){
+        $data = array();
+        $user_id = $r->user_id;
+        $user_type = $r->user_type;
+
+        $validator = Validator::make($r->all(), [
+            'user_id' => 'required',
+            'user_type' => 'required'
+        ]);
+
+        if ($validator->fails()) {
+
+            $failedRules = $validator->failed();
+
+            if(isset($failedRules['user_id'])) {
+                $data['status'] = 0;
+                $data['user_id'] = 'User id is required!';                
+            }
+
+            if(isset($failedRules['user_type'])) {
+                $data['status'] = 0;
+                $data['user_type'] = 'User type is required!';                
+            }
+
+            return json_encode($data);
+        }
+
+        $endDate = date("Y-m-d",strtotime($r->endDate."-2 day"));
+
+        if($user_type == 1){
+            $total_ad_posted = Ads::where('user_id', $user_id)->get()->count();
+        }else{
+            $total_ad_posted = '';
+        }
+
+        if($user_type == 1){
+            $latest_ad_posted = Ads::where('user_id', $user_id)->where('added_on', '>=', $endDate.' 00:00:00')->get()->count();
+        }else{
+            $latest_ad_posted = '';
+        }
+
+        if($user_type == 1){
+            $total_posted_ads = Ads::where('user_id', $user_id)->get();
+            $messages_count = 0;
+            foreach($total_posted_ads as $ad_posted){
+                $total_ad_messages = AdEnquiry::where('ad_id', $ad_posted->id)->get()->count();
+                $messages_count = $messages_count+$total_ad_messages;
+            }
+            
+        }else{
+            $messages_count = Ads::where('user_id', $user_id)->get()->count();
+        }
+
+        $user_ad_enquiries = DB::table('ads')
+                            ->leftJoin('ad_enquiry', 'ads.id', '=', 'ad_enquiry.ad_id')
+                            ->where('ads.user_id', $user_id)
+                            ->orderBy('ad_enquiry.id', 'desc')
+                            ->select('ad_enquiry.id as aden_id', 'ad_enquiry.ad_id as aden_ad_id', 'ad_enquiry.user_id as aden_user_id', 'ad_enquiry.user_type as aden_user_type', 'ad_enquiry.message as aden_message', 'ad_enquiry.created_at as aden_created_at')
+                            ->get();
+
+        $messages = array();
+        $i = 0;
+        foreach($user_ad_enquiries as $user_ad_enquiry){
+            if(!empty($user_ad_enquiry->aden_id)){
+                if($user_ad_enquiry->aden_user_type == 1){
+                    $user_name = vendor::where('id', $user_ad_enquiry->aden_user_id)->first();
+                }else{
+                    $user_name = Customer::where('id', $user_ad_enquiry->aden_user_id)->first();
+                }
+                
+                $ad_title = Ads::where('id', $user_ad_enquiry->aden_ad_id)->first();
+
+                $messages[$i]['id'] = $user_ad_enquiry->aden_id;
+                $messages[$i]['ad_id'] = $user_ad_enquiry->aden_ad_id;
+                $messages[$i]['ad_title'] = $ad_title->title;
+                $messages[$i]['post_user_id'] = $user_ad_enquiry->aden_user_id;
+                $messages[$i]['user_name'] = $user_name->name;
+                $messages[$i]['user_type'] = $user_ad_enquiry->aden_user_type;
+                $messages[$i]['message'] = $user_ad_enquiry->aden_message;
+                $messages[$i]['time'] = date("H:i", strtotime($user_ad_enquiry->aden_created_at));
+                if($i == 2){
+                    break;
+                }
+                $i++;
+            }
+        }
+
+        $user_trending_ads = Ads::where('user_id', $user_id)->orderBy('views', 'desc')->get();
+        $j = 0;
+        $trending_ads = array();
+        foreach($user_trending_ads as $user_trending_ad){
+            $trending_ads[$j]['ad_id'] = $user_trending_ad->id;
+            $trending_ads[$j]['title'] = $user_trending_ad->title;
+            $trending_ads[$j]['views'] = $user_trending_ad->views;
+            $trending_ads[$j]['request'] = AdEnquiry::where('ad_id', $user_trending_ad->id)->get()->count();
+            if($j == 3){
+                break;
+            }
+            $j++;
+        }
+
+        $data['total_ad_posted'] = $total_ad_posted;
+        $data['latest_ad_posted'] = $latest_ad_posted;
+        $data['messages_count'] = $messages_count;
+        $data['messages'] = $messages;
+        $data['trending_ads'] = $trending_ads;
+
+        return json_encode($data);
+    }
+
+    public function getAdDetail($ad_id = ''){
+        $data = array();
+
+        Ads::where('id', $ad_id)->increment('views');
+        $ad_data = Ads::where('id', $ad_id)->first();
+        $ad_images = AdImages::where('ad_id', $ad_id)->get();
+
+        $data['id'] = $ad_data->id;
+        $data['title'] = $ad_data->title;
+        $data['description'] = $ad_data->description;
+        $data['views'] = $ad_data->views;
+        $data['added_on'] = date("d M, Y H:i", strtotime($ad_data->added_on));
+
+        $imgs = [];
+        foreach ($ad_images as $ad_iamge) {
+            array_push($imgs, $ad_iamge->image);
+        }
+        $data['images'] = $imgs;
+
+        $user_detail = vendor::where('id', $ad_data->user_id)->first();
+        $data['user']['id'] = $user_detail->id;
+        $data['user']['name'] = $user_detail->name;
+        $data['user']['email'] = $user_detail->email;
+        $data['user']['phone'] = $user_detail->phone;
+
+        $category_detail = Category::where('id', $ad_data->category_id)->first();
+        $parent_category = Category::where('id', $category_detail->parent_category)->first();
+        $data['category']['cat_id'] = $parent_category->id;
+        $data['category']['cat_name'] = $parent_category->name;
+        $data['category']['sub_cat_id'] = $category_detail->id;
+        $data['category']['sub_cat_name'] = $category_detail->name;
+
+        return json_encode($data);
+    }
+
+    public function getVendorAdDetail($ad_id = ''){
+        $data = array();
+
+        if($ad_id == ''){
+            return json_encode($data);
+        }
+
+        //Ads::where('id', $ad_id)->increment('views');
+        $ad_data = Ads::where('id', $ad_id)->first();
+        $ad_images = AdImages::where('ad_id', $ad_id)->get();
+
+        if($ad_data == ''){
+            return json_encode($data);
+        }
+
+        $data['id'] = $ad_data->id;
+        $data['title'] = $ad_data->title;
+        $data['description'] = $ad_data->description;
+        $data['views'] = $ad_data->views;
+        $data['added_on'] = date("d M, Y H:i", strtotime($ad_data->added_on));
+
+        $imgs = [];
+        foreach ($ad_images as $ad_iamge) {
+            array_push($imgs, $ad_iamge->image);
+        }
+        $data['images'] = $imgs;
+
+        $user_detail = vendor::where('id', $ad_data->user_id)->first();
+        $data['user']['id'] = $user_detail->id;
+        $data['user']['name'] = $user_detail->name;
+        $data['user']['email'] = $user_detail->email;
+        $data['user']['phone'] = $user_detail->phone;
+
+        $category_detail = Category::where('id', $ad_data->category_id)->first();
+        $parent_category = Category::where('id', $category_detail->parent_category)->first();
+        $data['category']['cat_id'] = $parent_category->id;
+        $data['category']['cat_name'] = $parent_category->name;
+        $data['category']['sub_cat_id'] = $category_detail->id;
+        $data['category']['sub_cat_name'] = $category_detail->name;
+
+        $ad_enquiries = AdEnquiry::where('ad_id', $ad_id)->get();
+        $e = 0;
+        foreach($ad_enquiries as $ad_enquiry){
+            if($ad_enquiry->user_type == 1){
+                $user_detail = vendor::where('id', $ad_enquiry->user_id)->first();
+            }else{
+                $user_detail = Customer::where('id', $ad_enquiry->user_id)->first();
+            }
+            $data['ad_post'][$e]['message'] = $ad_enquiry->message;
+            $data['ad_post'][$e]['time'] = $ad_enquiry->created_at;
+            $data['ad_post'][$e]['customer_name'] = $user_detail->name;
+            $data['ad_post'][$e]['customer_email'] = $user_detail->email;
+            $data['ad_post'][$e]['customer_phone'] = $user_detail->phone;
+            $e++;
+        }
+
+        return json_encode($data);
+    }
+
+    public function sendEnquiry(Request $r){
+        $data = array();
+        $user_id = $r->user_id;
+        $user_type = $r->user_type;
+        $ad_id = $r->ad_id;
+        $message = $r->message;
+        $vendor_email = $r->vendor_email;
+        $vendor_name = $r->vendor_name;
+
+        $validator = Validator::make($r->all(), [
+            'user_id' => 'required',
+            'user_type' => 'required',
+            'ad_id' => 'required',
+            'message' => 'required',
+            'vendor_email' => 'required',
+            'vendor_name' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+
+            $failedRules = $validator->failed();
+
+            if(isset($failedRules['user_id'])) {
+                $data['status'] = 0;
+                $data['user_id'] = 'User id is required!';                
+            }
+
+            if(isset($failedRules['user_type'])) {
+                $data['status'] = 0;
+                $data['user_type'] = 'User type is required!';                
+            }
+
+            if(isset($failedRules['ad_id'])) {
+                $data['status'] = 0;
+                $data['ad_id'] = 'Ad id is required!';                
+            }
+
+            if(isset($failedRules['message'])) {
+                $data['status'] = 0;
+                $data['message'] = 'Message is required!';                
+            }
+
+            if(isset($failedRules['vendor_email'])) {
+                $data['status'] = 0;
+                $data['vendor_email'] = 'Vendor email is required!';                
+            }
+
+            if(isset($failedRules['vendor_name'])) {
+                $data['status'] = 0;
+                $data['vendor_name'] = 'Vendor name is required!';                
+            }
+
+            return json_encode($data);
+        }
+
+        $insertAdEnquiry = new AdEnquiry();
+        $insertAdEnquiry->ad_id = $ad_id;
+        $insertAdEnquiry->user_id = $user_id;
+        $insertAdEnquiry->user_type = $user_type;
+        $insertAdEnquiry->message = $message;
+        $insertAdEnquiry->created_at = date('Y-m-d H:i:s');
+        $insertAdEnquiry->save();
+
+        if($user_type == 1){
+            $user_data = vendor::where('id', $user_id)->first();
+        }else{
+            $user_data = Customer::where('id', $user_id)->first();
+        }
+
+        $ad_data = Ads::where('id', $ad_id)->first();
+
+        $category_detail = Category::where('id', $ad_data->category_id)->first();
+        $parent_category = Category::where('id', $category_detail->parent_category)->first();
+
+        $emaildata['name'] = $user_data->name;
+        $emaildata['email'] = $user_data->email;
+        $emaildata['phone'] = $user_data->phone;
+        $emaildata['ad_message'] = $message;
+        $emaildata['ad_title'] = $ad_data->title;
+        if(!empty($parent_category)){
+            $emaildata['cat_name'] = $parent_category->name;
+            $emaildata['sub_cat_name'] = $category_detail->name;
+        }else{
+            $emaildata['cat_name'] = $category_detail->name;
+            $emaildata['sub_cat_name'] = '';
+        }
+        $emaildata['vendor_name'] = $vendor_name;
+
+        $user = new \stdClass();
+        $user->email = $vendor_email;
+        $user->ad_title = $ad_data->title;
+
+        Mail::send('emails.sendEnquiryToVendor',$emaildata, function ($message)  use ($user){
+            $message->to($user->email);
+            $message->subject('Request for '.$user->ad_title.' - VMandi');
+        });
+
+        $data['status'] = 1;
+        $data['message'] = 'Enquiry Send Successfully.';
+        
+        return json_encode($data);
+    }
+
+    public function editAd(Request $r){
+        $data = array();
+
+        $ad_id = $r->ad_id;
+        //echo "<pre>";print_r($r->all());exit;
+        if($r->sub_category_id == ''){
+            $category_id = $r->category_id;
+        }else{
+            $category_id = $r->sub_category_id;
+        }
+        
+        $title = $r->title;
+        $description = $r->description;
+        //$added_on = date('Y-m-d H:i:s');
+        //$valid_till = date('Y-m-d H:i:s', strtotime(0));
+        //$status = 1;
+        $files = $r->file();
+
+        $validator = Validator::make($r->all(), [
+            'ad_id' => 'required',
+            'category_id' => 'required',
+            'title' => 'required'
+        ]);
+
+        if ($validator->fails()) {
+
+            $failedRules = $validator->failed();
+
+            if(isset($failedRules['ad_id'])) {
+                $data['status'] = 0;
+                $data['ad_id'] = 'Ad id is required!';                
+            }
+
+            if(isset($failedRules['category_id'])) {
+                $data['status'] = 0;
+                $data['category_id'] = 'Category id is required!';                
+            }
+
+            if(isset($failedRules['title'])) {
+                $data['status'] = 0;
+                $data['title'] = 'Title is required!';                
+            }
+            
+            return json_encode($data);
+        }
+
+        
+        $data[0] = count($files);
+        
+        if(count($files) == 0){
+            $data['status'] = 0;
+            $data['file'] = 'Image is required!';
+            return json_encode($data);
+        }else{            
+            $img_ext_arr = ["jpg", "jpeg", "png"];
+            foreach($files as $file){
+                $image_ext = $file->getClientOriginalExtension();
+                if (!in_array($image_ext, $img_ext_arr)){
+                    $data['status'] = 0;
+                    $data['err_key'] = 'file';
+                    $data['message'] = 'Invalid File Type!';
+                    return json_encode($data);
+                }
+            }
+        }
+        
+        $insertAd = Ads::where('id', $ad_id)->first();
+        $insertAd->category_id = $category_id;
+        $insertAd->title = $title;
+        $insertAd->description = $description;
+        $insertAd->save();
+
+        $all_ad_images = AdImages::where('ad_id', $ad_id)->get();
+
+        foreach($all_ad_images as $all_ad_image){
+            $img_name_arr = explode('/', $all_ad_image->image);
+            $img_name = $img_name_arr[count($img_name_arr)-1];
+            $destinationPath = public_path('image/ad_images/');
+            $file_name = $destinationPath.'/'.$img_name;
+            if (file_exists($file_name)) {
+                unlink($file_name);
+            }
+        }
+
+        AdImages::where('ad_id', $ad_id)->delete();
+
+        $i = 0;
+        foreach($files as $file){
+         
+            $image = $file;
+            $image_name = $ad_id.'_'.time().'_'.$i.'.'.$image->getClientOriginalExtension();
+      //       if (! File::exists(public_path('image/ad_images/'.$category_id))) {
+            //     File::makeDirectory('image/ad_images/'.$category_id, $mode = 0777, true, true);
+            // }
+            $destinationPath = public_path('image/ad_images/');
+            $image_url = url('public/image/ad_images/'.$image_name);
+            $image->move($destinationPath, $image_name);
+
+            $insertAdImage = new AdImages();
+            $insertAdImage->ad_id = $ad_id;
+            $insertAdImage->image = $image_url;
+            $insertAdImage->save();
+            $i++;
+        }
+
+        $data['status'] = 1;
+        $data['message'] = 'Ad Inserted Successfully.';
+
+        return json_encode($data);
+    }
+
+    public function deleteVendorAd(Request $r){
+        $data = array();
+        $ad_id = $r->ad_id;
+
+        $validator = Validator::make($r->all(), [
+            'ad_id' => 'required'
+        ]);
+
+        if ($validator->fails()) {
+
+            $failedRules = $validator->failed();
+
+            if(isset($failedRules['ad_id'])) {
+                $data['status'] = 0;
+                $data['ad_id'] = 'Ad id is required!';                
+            }
+
+            return json_encode($data);
+        }
+
+        $ads = Ads::find($ad_id);
+        $ads->ad_images()->delete();
+        $ads->ad_enquiry()->delete();
+        $ads->delete();
+
+        $data['status'] = 1;
+        $data['message'] = 'Ad Deleted Successfully.';
+        return json_encode($data);
+    }
+}
+

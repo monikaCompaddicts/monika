@@ -38,7 +38,7 @@
         }
         $.ajax({
             type: "POST",
-            url: base_url + '/admin/getChildCategory',
+            url: base_url + '/getChildCategory',
             data: {parent_id: parent_id},
             success: function( response ) {
                 var result = jQuery.parseJSON(response);

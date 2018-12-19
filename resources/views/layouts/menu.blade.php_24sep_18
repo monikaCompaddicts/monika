@@ -1,0 +1,24 @@
+
+<style>
+	i{width: 30px;}
+</style>
+<!--li class="{{ Request::is('tests*') ? 'active' : '' }}">
+    <a href="{!! route('tests.index') !!}"><i class="fa fa-edit"></i><span>Tests</span></a>
+</li-->
+<li class="{{ Request::is('dashboard*') ? 'active' : '' }}">
+    <a href="{{url('/dashboard')}}"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a>
+</li>
+<li class="{{ Request::is('category*') ? 'active' : '' }}">
+    <a href="{{url('/category')}}"><i class="fas fa-fish"></i><span>Category</span></a>
+</li>
+<li class="{{ Request::is('vendors*') ? 'active' : '' }}">
+    <a href="{!! route('vendors.index') !!}"><i class="fas fa-user-friends"></i></i><span>Vendors</span></a>
+</li>
+<li class="{{ Request::is('locations*') ? 'active' : '' }}">
+    <a href="{!! route('locations.index') !!}"><i class="fas fa-map-marker"></i><span>Locations</span></a>
+</li>
+<li class="{{ Request::is('banners*') ? 'active' : '' }}">
+    <a href="{!! url('banners/1/edit') !!}"><i class="fas fa-money-check"></i><span>Banners</span></a>
+</li>
+
+

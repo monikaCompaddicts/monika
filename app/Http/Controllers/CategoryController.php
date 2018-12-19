@@ -14,6 +14,7 @@ class CategoryController extends Controller
      */
     public function __construct()
     {
+        $this->middleware('auth');
         //header('Access-Control-Allow-Origin: *');        
         //header('Access-Control-Allow-Headers: Content-type, X-Auth-Token, Authorization, Origin');
        // $this->middleware('auth');

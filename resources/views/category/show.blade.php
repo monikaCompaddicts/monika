@@ -11,7 +11,7 @@
         <h4 class="modal-title">Add Sub Category</h4>
       </div>
       <div class="modal-body">
-        {!! Form::open(['id' => 'saveNewCategory', 'method' => 'POST', 'url' => '/admin/saveNewCategory', 'files' => true]) !!}
+        {!! Form::open(['id' => 'saveNewCategory', 'method' => 'POST', 'url' => '/saveNewCategory', 'files' => true]) !!}
             {!! Form::hidden('parent_category', '', ['class' => 'form-control']); !!}
             <div class="form-group">
                 {!! Form::label('name', 'Category Name') !!}
@@ -44,7 +44,7 @@
         <h4 class="modal-title">Edit Category</h4>
       </div>
       <div class="modal-body">
-        {!! Form::open(['id' => 'saveNewCategory', 'method' => 'POST', 'url' => '/admin/saveNewCategory', 'files' => true]) !!}
+        {!! Form::open(['id' => 'saveNewCategory', 'method' => 'POST', 'url' => '/saveNewCategory', 'files' => true]) !!}
             {!! Form::hidden('parent_category', '', ['class' => 'form-control']); !!}
             <div class="form-group">
                 {!! Form::label('name', 'Category Name') !!}

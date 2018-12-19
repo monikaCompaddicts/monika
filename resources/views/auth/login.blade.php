@@ -81,8 +81,8 @@
             </div>
         </form>
 
-        <a href="{{ url('/password/reset') }}">I forgot my password</a><br>
-        <a href="{{ url('/register') }}" class="text-center">Register a new membership</a>
+        <!-- <a href="{{ url('/password/reset') }}">Forgot Password</a>
+        <a href="{{ url('/register') }}" class="text-center pull-right">Create Account</a> -->
 
     </div>
     <!-- /.login-box-body -->

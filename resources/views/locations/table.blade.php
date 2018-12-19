@@ -8,7 +8,7 @@
     </thead>
     <tbody>
     @foreach($locations as $location)
-        <tr>
+        <tr class="data-rows">
             <td>{!! $location->market_name !!}</td>
             <td>{!! $location->address !!}</td>
             <td>
@@ -24,3 +24,4 @@
     @endforeach
     </tbody>
 </table>
+{{ $locations->render() }}

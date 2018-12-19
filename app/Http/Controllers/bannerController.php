@@ -8,6 +8,7 @@ use App\Repositories\bannerRepository;
 use App\Http\Controllers\AppBaseController;
 use Illuminate\Http\Request;
 use Flash;
+use File;
 use Prettus\Repository\Criteria\RequestCriteria;
 use Response;
 
@@ -18,6 +19,7 @@ class bannerController extends AppBaseController
 
     public function __construct(bannerRepository $bannerRepo)
     {
+        $this->middleware('auth');
         $this->bannerRepository = $bannerRepo;
     }
 
@@ -30,9 +32,9 @@ class bannerController extends AppBaseController
     public function index(Request $request)
     {
         $this->bannerRepository->pushCriteria(new RequestCriteria($request));
-        $banners = $this->bannerRepository->all();
+        $banners = $this->bannerRepository->get()->first();
 
-        return view('banners.index')
+        return view('banners.edit')
             ->with('banners', $banners);
     }
 
@@ -55,21 +57,45 @@ class bannerController extends AppBaseController
      */
     public function store(CreatebannerRequest $request)
     {
-        $input = $request->all();
+        $input                   = $request->all();
 
-        $bann_img = $request->file('banner_image');
-        $bann_img_name = 'home-banner-'.time().'.'.$bann_img->getClientOriginalExtension();
-        $destinationPath = public_path('image/home_image');
-        $bann_img_url = url('public/image/home_image/'.$bann_img_name);
-        $bann_img->move($destinationPath, $bann_img_name);
+        if($request->has('logo')) {
+            $logo_img            = $request->file('logo');
+            $logo_img_name       = 'logo-'.time().'.'.$logo_img->getClientOriginalExtension();
+            $logoDestinationPath = public_path('image/home_image');
+            $logo_img_url        = 'public/image/home_image/'.$logo_img_name;
+            $logo_img->move($logoDestinationPath, $logo_img_name);
 
-        $input['banner_image'] = $bann_img_url;
+            $input['logo']       = $logo_img_url;  
+        }
+        
+        if($request->has('loader')) {
+
+            $loader                = $request->file('loader');
+            $loader_name           = 'loader-'.time().'.'.$loader->getClientOriginalExtension();
+            $loaderDestinationPath = public_path('image/logo');
+            $loader_img_url        = 'public/image/logo/'.$loader_name;
+            $loader->move($loaderDestinationPath, $loader_name);        
+            $input['loader']       = $loader_img_url;
+        }
+
+        if($request->has('banner_image')) {    
+
+            $bann_img        = $request->file('banner_image');
+            $bann_img_name   = 'home-banner-'.time().'.'.$bann_img->getClientOriginalExtension();
+            $destinationPath = public_path('image/home_image');
+            $bann_img_url    = 'public/image/home_image/'.$bann_img_name;
+            $bann_img->move($destinationPath, $bann_img_name);
+
+            $input['banner_image'] = $bann_img_url;
+         }   
 
         $banner = $this->bannerRepository->create($input);
 
-        Flash::success('Banner saved successfully.');
+        Flash::success('Settings saved successfully.');
 
-        return redirect(route('banners.index'));
+       // return view('banners.edit')->with('banner', $banner);
+        return redirect(route('banners.edit', [$banner->id]));
     }
 
     /**
@@ -86,7 +112,7 @@ class bannerController extends AppBaseController
         if (empty($banner)) {
             Flash::error('Banner not found');
 
-            return redirect(route('banners.index'));
+            return redirect(route('banners.create'));
         }
 
         return view('banners.show')->with('banner', $banner);
@@ -101,14 +127,15 @@ class bannerController extends AppBaseController
      */
     public function edit($id)
     {
-        $banner = $this->bannerRepository->findWithoutFail($id);
+        $banner = $this->bannerRepository->get()->first();
 
         if (empty($banner)) {
             Flash::error('Banner not found');
 
-            return redirect(route('banners.index'));
+            return redirect(route('banners.create'));
         }
-
+        //print_r($banner); exit;
+        //print_r($banner); exit;
         return view('banners.edit')->with('banner', $banner);
     }
 
@@ -122,38 +149,66 @@ class bannerController extends AppBaseController
      */
     public function update($id, UpdatebannerRequest $request)
     {
-        $banner = $this->bannerRepository->findWithoutFail($id);
+        //echo "<pre>";print_r($request->all());exit;
+        $banner = $this->bannerRepository->get()->first();
 
         if (empty($banner)) {
             Flash::error('Banner not found');
 
-            return redirect(route('banners.index'));
+            return redirect(route('banners.edit'))->withErrors('Select title');
         }
 
         $input = $request->all();
 
         if($request->has('banner_image')){
-            $exists_img_arr = explode('/', $banner->banner_image);
-            $exists_img_name = $exists_img_arr[count($exists_img_arr)-1];
-            $unlink_path = public_path('image/home_image').'/'.$exists_img_arr[count($exists_img_arr)-1];
-            unlink($unlink_path);
-
-            $bann_img = $request->file('banner_image');
-            $bann_img_name = 'home-banner-'.time().'.'.$bann_img->getClientOriginalExtension();
+            if($banner->banner_image) {                
+                File::delete($banner->banner_image);                
+            } 
+            $bann_img        = $request->file('banner_image');
+            $bann_img_name   = 'home-banner-'.time().'.'.$bann_img->getClientOriginalExtension();
             $destinationPath = public_path('image/home_image');
-            $bann_img_url = url('public/image/home_image/'.$bann_img_name);
+            $bann_img_url    = 'public/image/home_image/'.$bann_img_name;
             $bann_img->move($destinationPath, $bann_img_name);
-
-            $input['banner_image'] = $bann_img_url;
-        }else{
+            $input['banner_image'] = $bann_img_url;   
+        } else {
             $input['banner_image'] = $banner->banner_image;
+        }   
+
+        if($request->has('logo')) {
+            if($banner->logo) {
+              File::delete($banner->logo);                  
+            }
+
+            $logo_img            = $request->file('logo');
+            $logo_img_name       = 'logo-'.time().'.'.$logo_img->getClientOriginalExtension();
+            $logoDestinationPath = public_path('image/home_image');
+            $logo_img_url        = 'public/image/home_image/'.$logo_img_name;
+            $logo_img->move($logoDestinationPath, $logo_img_name);
+            $input['logo'] = $logo_img_url;   
+        } else {
+            $input['logo'] = $banner->logo;
+        }
+        
+        if($request->has('loader')) {
+            if($banner->loader) {
+                File::delete($banner->loader);                     
+            }
+            $loader                = $request->file('loader');
+            $loader_name           = 'loader-'.time().'.'.$loader->getClientOriginalExtension();
+            $loaderDestinationPath = public_path('image/logo');
+            $loader_img_url        = 'public/image/logo/'.$loader_name;
+            $loader->move($loaderDestinationPath, $loader_name);        
+            $input['loader']       = $loader_img_url;        
+        } else {
+            $input['loader']       = $banner->loader;   
         }
 
         $banner = $this->bannerRepository->update($input, $id);
 
-        Flash::success('Banner updated successfully.');
-        return redirect('banners/1/edit');
-        return redirect(route('banners.index'));
+        Flash::success('Settings saved successfully.');
+       
+        return redirect(route('banners.edit', [$banner->id]));
+        //return redirect(route('banners.edit'));
     }
 
     /**

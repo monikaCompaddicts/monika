@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Flash;
 use Prettus\Repository\Criteria\RequestCriteria;
 use Response;
+use App\Models\location;
 
 class locationController extends AppBaseController
 {
@@ -18,6 +19,7 @@ class locationController extends AppBaseController
 
     public function __construct(locationRepository $locationRepo)
     {
+        $this->middleware('auth');
         $this->locationRepository = $locationRepo;
     }
 
@@ -32,6 +34,7 @@ class locationController extends AppBaseController
         $this->locationRepository->pushCriteria(new RequestCriteria($request));
         $locations = $this->locationRepository->all();
 
+        $locations = location::paginate(10);
         return view('locations.index')
             ->with('locations', $locations);
     }
@@ -138,15 +141,16 @@ class locationController extends AppBaseController
      */
     public function destroy($id)
     {
-        $location = $this->locationRepository->findWithoutFail($id);
+        $locations = location::find($id);
 
-        if (empty($location)) {
+        if (empty($locations)) {
             Flash::error('Location not found');
 
             return redirect(route('locations.index'));
         }
 
-        $this->locationRepository->delete($id);
+        $locations->ad_loctaion()->delete();
+        $locations->forceDelete();
 
         Flash::success('Location deleted successfully.');
 

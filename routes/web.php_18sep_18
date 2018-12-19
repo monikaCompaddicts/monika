@@ -1,0 +1,65 @@
+<?php
+
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register web routes for your application. These
+| routes are loaded by the RouteServiceProvider within a group which
+| contains the "web" middleware group. Now create something great!
+|
+*/
+
+Route::get('/', function () {
+	return redirect('/admin/dashboard');
+    //return view('welcome');
+});
+
+
+Auth::routes();
+
+Route::get('/home', function () {
+	return redirect('/admin/dashboard');
+    //return view('welcome');
+});
+Route::get('/send/email', 'HomeController@mail');
+Route::get('/admin/dashboard', 'HomeController@index');
+
+
+//Admin Urls
+Route::get('/admin/category', 'AdminController@getCategories');
+Route::post('/admin/getChildCategory', 'AdminController@getChildCategory');
+Route::post('/admin/saveNewCategory', 'AdminController@saveNewCategory');
+Route::post('/admin/editCategory', 'AdminController@editCategory');
+Route::post('/admin/deleteCategory', 'AdminController@deleteCategory');
+Route::get('/admin/category/create', 'AdminController@createCategory');
+Route::post('/admin/changeVendorStatus', 'AdminController@changeVendorStatus');
+Route::get('/admin/send-mail/{id}', 'AdminController@sendMailToVendor');
+Route::post('/orderCategory', 'AdminController@orderCategory');
+
+Route::resource('admin/tests', 'testController');
+Route::resource('admin/vendors', 'vendorController');
+Route::resource('admin/locations', 'locationController');
+Route::resource('admin/banners', 'bannerController');
+
+//API Urls
+Route::get('/addCategory', 'CategoryController@addCategory');
+Route::get('/test-api', 'CategoryController@testApi');
+Route::any('/get-category', 'CategoryController@getCategory');
+Route::get('/registerCustomer', 'CustomerController@register');
+Route::get('/updateCustomer', 'CustomerController@update');
+Route::get('/insertAd', 'AdsController@insertAd');
+
+// Routes for API
+Route::get('api/get-category', 'ApiController@getCategory')->middleware('cors');
+Route::get('api/get-locations', 'ApiController@getLocations')->middleware('cors');
+Route::get('api/get-banner', 'ApiController@getbanners')->middleware('cors');
+Route::post('api/add-vendor', 'ApiController@addVendor')->middleware('cors');
+Route::post('api/login-vendor', 'ApiController@loginVendor')->middleware('cors');
+Route::get('api/get-sub-category/{id}', 'ApiController@getSubCategory')->middleware('cors');
+Route::post('api/post-ad', 'ApiController@postAd')->middleware('cors');
+
+
+
+

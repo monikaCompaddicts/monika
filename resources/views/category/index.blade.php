@@ -18,7 +18,7 @@
         <h4 class="modal-title">Add Sub Category</h4>
       </div>
       <div class="modal-body">
-        {!! Form::open(['id' => 'saveNewCategory', 'class' =>'add-edit-category-form', 'method' => 'POST', 'url' => '/admin/saveNewCategory', 'files' => true]) !!}
+        {!! Form::open(['id' => 'saveNewCategory', 'class' =>'add-edit-category-form', 'method' => 'POST', 'url' => '/saveNewCategory', 'files' => true]) !!}
             {!! Form::hidden('parent_category', '', ['class' => 'form-control']); !!}
             <div class="form-group">
                 {!! Form::label('name', 'Category Name') !!}
@@ -27,6 +27,14 @@
             <div class="form-group">
                 {!! Form::label('image', 'Category Image') !!}
                 {!! Form::file('image', array('class' => 'form-control', 'id' => 'cat-image')) !!}
+            </div>
+            <div class="form-group">
+                {!! Form::label('name', 'Category Description') !!}
+                {!! Form::textarea('category_description', '', ['class' => 'form-control', 'rows' => 3]); !!}
+            </div>
+            <div class="form-group">
+                {!! Form::label('unit', 'Unit') !!}
+                {!! Form::text('unit', '', ['class' => 'form-control']); !!}
             </div>
             {!! Form::submit('SUBMIT', ['class' => 'btn btn-primary', 'onclick' => 'return validateCategoryForm();']); !!}
         {!! Form::close() !!}
@@ -51,7 +59,52 @@
         <h4 class="modal-title">Edit Category</h4>
       </div>
       <div class="modal-body">
-        {!! Form::open(['id' => 'editCategory', 'class' =>'add-edit-category-form', 'method' => 'POST', 'url' => '/admin/editCategory', 'files' => true]) !!}
+        {!! Form::open(['id' => 'editCategory', 'class' =>'add-edit-category-form', 'method' => 'POST', 'url' => '/editCategory', 'files' => true]) !!}
+            {!! Form::hidden('category_id', '', ['class' => 'form-control']); !!}
+            <div class="form-group">
+                {!! Form::label('name', 'Category Name') !!}
+                {!! Form::text('category_name', '', ['class' => 'form-control']); !!}
+            </div>
+            <div class="form-group">
+                {!! Form::label('image', 'Category Image') !!}
+                {!! Form::file('image', array('class' => 'form-control', 'id' => 'cat-image')) !!}
+            </div>
+            <div class="form-group img-cat">
+                <img src="">
+            </div>
+            <div class="form-group">
+                {!! Form::label('category_description', 'Category Description') !!}
+                {!! Form::textarea('category_description', '', ['class' => 'form-control', 'rows' => '3']); !!}
+            </div>
+            <div class="form-group">
+                {!! Form::label('unit', 'Unit') !!}
+                {!! Form::text('unit', '', ['class' => 'form-control']); !!}
+            </div>
+            {!! Form::submit('SUBMIT', ['class' => 'btn btn-primary', 'onclick' => 'return validateEditCategoryForm();']); !!}
+        {!! Form::close() !!}
+      </div>
+      <!--div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div-->
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal -->
+<div id="view-cat-image-modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <!--div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Edit Category</h4>
+      </div-->
+      <div class="modal-body">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <img src="">
+        <!--{!! Form::open(['id' => 'editCategory', 'class' =>'add-edit-category-form', 'method' => 'POST', 'url' => '/editCategory', 'files' => true]) !!}
             {!! Form::hidden('category_id', '', ['class' => 'form-control']); !!}
             <div class="form-group">
                 {!! Form::label('name', 'Category Name') !!}
@@ -65,7 +118,7 @@
                 <img src="">
             </div>
             {!! Form::submit('SUBMIT', ['class' => 'btn btn-primary', 'onclick' => 'return validateEditCategoryForm();']); !!}
-        {!! Form::close() !!}
+        {!! Form::close() !!}-->
       </div>
       <!--div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -79,6 +132,7 @@
         <div class="clearfix"></div>
 
         <!--@include('flash::message')-->
+        @include('flash::message')
 
         <div class="clearfix"></div>
         <div class="box box-primary">
@@ -98,11 +152,12 @@
                             <span style="float: right;cursor: {{ $cursor }}" class="parentDivChildren" data-child="{{ $count_child_category }}" data-id="{{ $category->id }}"><i class="fas fa-sort-down"></i></span>
                             @endif
                             <span class="add-sub-category" data-toggle="modal" data-target="#sub-cat-modal" title="Add Sub Category" data-id="{{ $category->id }}"><i class="fas fa-plus"></i></span>
-                            <span class="edit-category" data-toggle="modal" data-target="#edit-cat-modal" title="Edit Category" data-id="{{ $category->id }}" data-name="{{ $category->name }}" data-image="{{ $category->image }}"><i class="fas fa-edit"></i></span>
+                            <span class="edit-category" data-toggle="modal" data-target="#edit-cat-modal" title="Edit Category" data-id="{{ $category->id }}" data-name="{{ $category->name }}" data-image="{{ $category->image }}" data-description="{{ $category->description }}" data-unit="{{ $category->unit }}"><i class="fas fa-edit"></i></span>
                             <span class="delete-this-category" title="Delete Category" data-id="{{ $category->id }}"><i class="fas fa-trash-alt"></i></span>
+                            <span class="view-this-category-image" data-toggle="modal" data-target="#view-cat-image-modal" title="View Category Image" data-img="{{ $category->image }}"><img src="{{ $category->image }}"></span>
                         </div>
                    @endforeach
-                    <a href="{!! route('tests.index') !!}" class="btn btn-default">Back</a>
+                    <a href="<?php echo $_SERVER['HTTP_REFERER']; ?>" class="btn btn-default">Back</a>
                 </div>
             </div>
         </div>
@@ -118,8 +173,20 @@
     $( function() {
         $( "#sortable" ).sortable({
             update: function( event, ui ) {
-                console.log(event);
-                console.log(ui);
+                var id_arr = [];
+                $( "#sortable .parentDiv" ).each(function( index ) {
+                    id_arr.push($( this ).attr('data-id'));
+                });
+
+                $.ajax({
+                    type: "POST",
+                    url: base_url + '/orderCategory',
+                    data: {ids: JSON.stringify(id_arr)},
+                    success: function( response ) {
+                        //location.reload();
+                    }
+                });
+                  console.log( id_arr );
             }
         });
     } );
@@ -141,8 +208,10 @@
             img = new Image();
             img.src = _URL.createObjectURL(file);
               img.onload = function() {
-               imgwidth = this.width;
-               imgheight = this.height;
+               // imgwidth = this.width;
+               // imgheight = this.height;
+               imgwidth = 64;
+               imgheight = 64;
                if(imgwidth != 64 && imgheight != 64){
                     this_img.val('');
                     $('#saveNewCategory input[name=image]').css('border', '1px solid red');
@@ -159,6 +228,8 @@
     function validateCategoryForm(){
         
         var name = $('#saveNewCategory input[name=category_name]').val();
+        var description = $('#saveNewCategory textarea[name=category_description]').val();
+        var unit = $('#saveNewCategory input[name=unit]').val();
         var image = $('#saveNewCategory input[name=image]').val();
         var error = 0;
         if(name == ''){
@@ -168,7 +239,27 @@
             error = 1;
         }else{
             $('#saveNewCategory input[name=category_name]').css('border', '1px solid #d2d6de');
-            $('#saveNewCategory input[name=image]').next().remove();
+            $('#saveNewCategory input[name=category_name]').next().remove();
+        }
+
+        if(description == ''){
+            $('#saveNewCategory textarea[name=category_description]').css('border', '1px solid red');
+            $('#saveNewCategory textarea[name=category_description]').next().remove();
+            $('#saveNewCategory textarea[name=category_description]').after('<span class="input-error">This field is required!</span>');
+            error = 1;
+        }else{
+            $('#saveNewCategory textarea[name=category_description]').css('border', '1px solid #d2d6de');
+            $('#saveNewCategory textarea[name=category_description]').next().remove();
+        }
+
+        if(unit == ''){
+            $('#saveNewCategory input[name=unit]').css('border', '1px solid red');
+            $('#saveNewCategory input[name=unit]').next().remove();
+            $('#saveNewCategory input[name=unit]').after('<span class="input-error">This field is required!</span>');
+            error = 1;
+        }else{
+            $('#saveNewCategory input[name=unit]').css('border', '1px solid #d2d6de');
+            $('#saveNewCategory input[name=unit]').next().remove();
         }
 
         if(image == ''){
@@ -203,8 +294,10 @@
             img = new Image();
             img.src = _URL.createObjectURL(file);
               img.onload = function() {
-               imgwidth = this.width;
-               imgheight = this.height;
+               // imgwidth = this.width;
+               // imgheight = this.height;
+               imgwidth = 64;
+               imgheight = 64;
                if(imgwidth != 64 && imgheight != 64){
                     this_img.val('');
                     $('#editCategory input[name=image]').css('border', '1px solid red');
@@ -221,6 +314,8 @@
     function validateEditCategoryForm(){
         
         var name = $('#editCategory input[name=category_name]').val();
+        var description = $('#editCategory textarea[name=category_description]').val();
+        var unit = $('#editCategory input[name=unit]').val();
         var error = 0;
         if(name == ''){
             $('#editCategory input[name=category_name]').css('border', '1px solid red');
@@ -231,6 +326,27 @@
             $('#editCategory input[name=category_name]').css('border', '1px solid #d2d6de');
             $('#editCategory input[name=image]').next().remove();
         }
+
+        if(description == ''){
+            $('#editCategory textarea[name=category_description]').css('border', '1px solid red');
+            $('#editCategory textarea[name=category_description]').next().remove();
+            $('#editCategory textarea[name=category_description]').after('<span class="input-error">This field is required!</span>');
+            error = 1;
+        }else{
+            $('#editCategory textarea[name=category_description]').css('border', '1px solid #d2d6de');
+            $('#editCategory textarea[name=category_description]').next().remove();
+        }
+
+        if(unit == ''){
+            $('#editCategory input[name=unit]').css('border', '1px solid red');
+            $('#editCategory input[name=unit]').next().remove();
+            $('#editCategory input[name=unit]').after('<span class="input-error">This field is required!</span>');
+            error = 1;
+        }else{
+            $('#editCategory input[name=unit]').css('border', '1px solid #d2d6de');
+            $('#editCategory input[name=unit]').next().remove();
+        }
+
 
         if(error == 1){
             return false;
@@ -249,10 +365,20 @@
         var cat_id = $(this).attr('data-id');
         var cat_name = $(this).attr('data-name');
         var cat_image = $(this).attr('data-image');
+        var cat_description = $(this).attr('data-description');
+        var cat_unit = $(this).attr('data-unit');
         $("#editCategory")[0].reset();
         $('#editCategory').find('input[type=hidden][name=category_id]').val(cat_id);
         $('#editCategory').find('input[type=text][name=category_name]').val(cat_name);
         $('#editCategory').find('.img-cat img').attr('src', cat_image);
+        $('#editCategory').find('textarea').val(cat_description);
+        $('#editCategory').find('input[type=text][name=unit]').val(cat_unit);
+    });
+
+    $(document).on("click", ".view-this-category-image", function(){
+        var cat_image = $(this).attr('data-img');
+        console.log(cat_image);
+        $('#view-cat-image-modal .modal-body img').attr('src', cat_image);
     });
 
     $(document).on("click", ".delete-this-category", function(){
@@ -261,7 +387,7 @@
         if (r == true) {
             $.ajax({
                 type: "POST",
-                url: base_url + '/admin/deleteCategory',
+                url: base_url + '/deleteCategory',
                 data: {id: id},
                 success: function( response ) {
                     location.reload();
@@ -280,7 +406,7 @@
             var this_div = $(this);
             $.ajax({
                 type: "POST",
-                url: base_url + '/admin/getChildCategory',
+                url: base_url + '/getChildCategory',
                 data: {parent_id: parent_id},
                 success: function( response ) {
                     var result = jQuery.parseJSON(response);
@@ -305,8 +431,10 @@
                             }
                         cat_div = cat_div+
                                 //'<span class="add-sub-category" data-toggle="modal" data-target="#sub-cat-modal" title="Add Sub Category" data-id="'+result[i].id+'"><i class="fas fa-plus"></i></span>'+
-                                '<span class="edit-category" data-toggle="modal" data-target="#edit-cat-modal" title="Edit Category" data-id="'+result[i].id+'" data-name="'+result[i].name+'" data-image="'+result[i].image+'"><i class="fas fa-edit"></i></span>'+
-                                '<span class="delete-this-category" title="Delete Category" data-id="'+result[i].id+'"><i class="fas fa-trash-alt"></i></span></div>';
+                                '<span class="edit-category" data-toggle="modal" data-target="#edit-cat-modal" title="Edit Category" data-id="'+result[i].id+'"  data-description="'+result[i].description+'" data-unit="'+result[i].unit+'"   data-name="'+result[i].name+'" data-image="'+result[i].image+'"><i class="fas fa-edit"></i></span>'+
+                                '<span class="delete-this-category" title="Delete Category" data-id="'+result[i].id+'"><i class="fas fa-trash-alt"></i></span>'+
+                                '<span class="view-this-category-image" data-toggle="modal" data-target="#view-cat-image-modal" title="View Category Image" data-img="'+result[i].image+'"><img src="'+result[i].image+'"></span>'+
+                                '</div>';
                         $(this_div).parent().append(cat_div);
                     }
                 }

@@ -1,0 +1,205 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\CreatevendorRequest;
+use App\Http\Requests\UpdatevendorRequest;
+use App\Repositories\vendorRepository;
+use App\Http\Controllers\AppBaseController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use Flash;
+use Prettus\Repository\Criteria\RequestCriteria;
+use Response;
+use Redirect;
+use App\Models\vendor;
+use App\Models\Ads;
+use App\Models\AdEnquiry;
+use App\Models\Category;
+
+class vendorController extends AppBaseController
+{
+    /** @var  vendorRepository */
+    private $vendorRepository;
+
+    public function __construct(vendorRepository $vendorRepo)
+    {
+        $this->middleware('auth');
+        $this->vendorRepository = $vendorRepo;
+    }
+
+    /**
+     * Display a listing of the vendor.
+     *
+     * @param Request $request
+     * @return Response
+     */
+    public function index(Request $request)
+    {
+        $this->vendorRepository->pushCriteria(new RequestCriteria($request));
+        //$vendors = $this->vendorRepository->all();
+
+        $vendors = vendor::paginate(10);
+
+        return view('vendors.index')
+            ->with('vendors', $vendors);
+    }
+
+    /**
+     * Show the form for creating a new vendor.
+     *
+     * @return Response
+     */
+    public function create()
+    {
+        return view('vendors.create');
+    }
+
+    /**
+     * Store a newly created vendor in storage.
+     *
+     * @param CreatevendorRequest $request
+     *
+     * @return Response
+     */
+    public function store(CreatevendorRequest $request)
+    {
+        $input = $request->all();
+
+        $exist_data = vendor::where('email', $input['email'])->get();
+        if(count($exist_data) == 0){
+            $exist_phone_data = vendor::where('phone', $input['phone'])->get();
+            if(count($exist_phone_data) == 0){
+
+            }else{
+                Flash::error('Mobile Number Already Exists!');
+                return Redirect::back()->withInput($input);               
+            }
+        }else{
+            Flash::error('Email Id Already Exists!');
+            return Redirect::back()->withInput($input);
+        }
+
+        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $charactersLength = strlen($characters);
+        $randomString = '';
+        for ($i = 0; $i < 8; $i++) {
+            $randomString .= $characters[rand(0, $charactersLength - 1)];
+        }
+        $input['password'] = $randomString;
+
+        $vendor = $this->vendorRepository->create($input);
+
+        $emaildata['name'] = $vendor->name;
+        $emaildata['password'] = $vendor->password;
+        $user = new \stdClass();
+        $user->email = $vendor->email;
+        Mail::send('emails.addVendor',$emaildata, function ($message)  use ($user){
+            $message->to($user->email);
+            $message->subject('VMandi Account Password');
+        });
+
+        Flash::success('Vendor saved successfully.');
+
+        return redirect(route('vendors.index'));
+    }
+
+    /**
+     * Display the specified vendor.
+     *
+     * @param  int $id
+     *
+     * @return Response
+     */
+    public function show($id)
+    {
+        $vendor = $this->vendorRepository->findWithoutFail($id);
+
+        if (empty($vendor)) {
+            Flash::error('Vendor not found');
+
+            return redirect(route('vendors.index'));
+        }
+
+        $vendor_ads = Ads::where('user_id', $id)->paginate(5);
+
+        $vendor_ad_ids = Ads::where('user_id', $id)->select('id')->get()->toArray();
+        $vendor_ad_id_arr = array();
+        foreach($vendor_ad_ids as $vendor_ad_id){
+            $vendor_ad_id_arr[] = $vendor_ad_id['id'];
+        }
+        $enquiry_count = AdEnquiry::whereIn('ad_id', $vendor_ad_id_arr)->get()->count();
+
+        return view('vendors.show')->with(['vendor' => $vendor, 'vendor_ads' => $vendor_ads, 'enquiry_count' => $enquiry_count]);
+    }
+
+    /**
+     * Show the form for editing the specified vendor.
+     *
+     * @param  int $id
+     *
+     * @return Response
+     */
+    public function edit($id)
+    {
+        $vendor = $this->vendorRepository->findWithoutFail($id);
+
+        if (empty($vendor)) {
+            Flash::error('Vendor not found');
+
+            return redirect(route('vendors.index'));
+        }
+
+        return view('vendors.edit')->with('vendor', $vendor);
+    }
+
+    /**
+     * Update the specified vendor in storage.
+     *
+     * @param  int              $id
+     * @param UpdatevendorRequest $request
+     *
+     * @return Response
+     */
+    public function update($id, UpdatevendorRequest $request)
+    {
+        $vendor = $this->vendorRepository->findWithoutFail($id);
+
+        if (empty($vendor)) {
+            Flash::error('Vendor not found');
+
+            return redirect(route('vendors.index'));
+        }
+        $input = $request->all();
+        $input['password'] = $vendor->password;
+        $vendor = $this->vendorRepository->update($input, $id);
+
+        Flash::success('Vendor updated successfully.');
+
+        return redirect(route('vendors.index'));
+    }
+
+    /**
+     * Remove the specified vendor from storage.
+     *
+     * @param  int $id
+     *
+     * @return Response
+     */
+    public function destroy($id)
+    {
+        $vendor = $this->vendorRepository->findWithoutFail($id);
+
+        if (empty($vendor)) {
+            Flash::error('Vendor not found');
+
+            return redirect(route('vendors.index'));
+        }
+
+        $this->vendorRepository->delete($id);
+
+        Flash::success('Vendor deleted successfully.');
+
+        return redirect(route('vendors.index'));
+    }
+}

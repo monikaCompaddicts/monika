@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <title>VMandi</title>
     <meta content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no' name='viewport'>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ url('public/image/logo.png') }}">
+
 
     <!-- Bootstrap 3.3.7 -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
@@ -28,6 +32,17 @@
     <link rel="stylesheet" href="{{ url('public/css/style.css') }}">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
     <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <!-- Include stylesheet -->
+    <script src='https://cloud.tinymce.com/stable/tinymce.min.js?apiKey=m7ybwlexpig7w33r9vz824yms846nr786x6ehba9gzfsfbum'></script>
+    <script>
+      tinymce.init({
+        selector: 'textarea[name=banner_description], textarea[name=banner_heading], textarea[name=cms_description]',
+        menubar: false,
+        statusbar: false,
+        plugins: "textcolor",
+        toolbar: 'undo redo bold italic fontsize fontsizeselect forecolor',
+      });
+    </script>
 
     @yield('css')
 </head>
@@ -70,13 +85,13 @@
                                          class="img-circle" alt="User Image"/>
                                     <p>
                                         {!! Auth::user()->name !!}
-                                        <small>Member since {!! Auth::user()->created_at->format('M. Y') !!}</small>
+                                        <!--small>Member since {!! Auth::user()->created_at->format('M. Y') !!}</small-->
                                     </p>
                                 </li>
                                 <!-- Menu Footer-->
                                 <li class="user-footer">
                                     <div class="pull-left">
-                                        <a href="#" class="btn btn-default btn-flat">Profile</a>
+                                        <a href="{{ url('/profile') }}" class="btn btn-default btn-flat">Profile</a>
                                     </div>
                                     <div class="pull-right">
                                         <a href="{!! url('/logout') !!}" class="btn btn-default btn-flat"
@@ -104,7 +119,7 @@
 
         <!-- Main Footer -->
         <footer class="main-footer" style="max-height: 100px;text-align: center">
-            <strong>Copyright © 2016 <a href="#">Company</a>.</strong> All rights reserved.
+            <strong>Copyright © 2018 <a href="http://vmandi.com">VMandi</a>.</strong> All rights reserved.
         </footer>
 
     </div>
@@ -166,6 +181,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.5/js/select2.min.js"></script>
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
 
     @yield('scripts')
 </body>

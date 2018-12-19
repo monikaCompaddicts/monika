@@ -18,6 +18,7 @@ class settingsController extends AppBaseController
 
     public function __construct(settingsRepository $settingsRepo)
     {
+        $this->middleware('auth');
         $this->settingsRepository = $settingsRepo;
     }
 

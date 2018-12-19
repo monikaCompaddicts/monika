@@ -4,3 +4,40 @@
 [13-Sep-2018 17:47:18 Etc/GMT] PHP Parse error:  syntax error, unexpected 'class' (T_CLASS), expecting identifier (T_STRING) or variable (T_VARIABLE) or '{' or '$' in /home/vma54n6di/public_html/backend/public/index.php on line 52
 [13-Sep-2018 17:50:04 Etc/GMT] PHP Parse error:  syntax error, unexpected 'class' (T_CLASS), expecting identifier (T_STRING) or variable (T_VARIABLE) or '{' or '$' in /home/vma54n6di/public_html/backend/public/index.php on line 52
 [13-Sep-2018 17:55:12 Etc/GMT] PHP Parse error:  syntax error, unexpected 'class' (T_CLASS), expecting identifier (T_STRING) or variable (T_VARIABLE) or '{' or '$' in /home/vma54n6di/public_html/backend/public/index.php on line 52
+[18-Sep-2018 08:26:08 UTC] PHP Warning:  Uncaught ErrorException: require(/home/vma54n6di/public_html/admin/routes/web.php): failed to open stream: No such file or directory in /home/vma54n6di/public_html/admin/vendor/laravel/framework/src/Illuminate/Routing/Router.php:400
+Stack trace:
+#0 /home/vma54n6di/public_html/admin/vendor/laravel/framework/src/Illuminate/Routing/Router.php(400): Illuminate\Foundation\Bootstrap\HandleExceptions->handleError(2, 'require(/home/v...', '/home/vma54n6di...', 400, Array)
+#1 /home/vma54n6di/public_html/admin/vendor/laravel/framework/src/Illuminate/Routing/Router.php(400): require()
+#2 /home/vma54n6di/public_html/admin/vendor/laravel/framework/src/Illuminate/Routing/Router.php(356): Illuminate\Routing\Router->loadRoutes('/home/vma54n6di...')
+#3 /home/vma54n6di/public_html/admin/vendor/laravel/framework/src/Illuminate/Routing/RouteRegistrar.php(121): Illuminate\Routing\Router->group(Array, '/home/vma54n6di...')
+#4 /home/vma54n6di/public_html/admin/app/Providers/RouteServiceProvider.php(56): Illuminate\Routing\RouteRegi in /home/vma54n6di/public_html/admin/vendor/laravel/framework/src/Illuminate/Routing/Router.php on line 400
+[18-Sep-2018 08:26:08 UTC] PHP Fatal error:  Illuminate\Routing\Router::loadRoutes(): Failed opening required '/home/vma54n6di/public_html/admin/routes/web.php' (include_path='.:/opt/alt/php71/usr/share/pear') in /home/vma54n6di/public_html/admin/vendor/laravel/framework/src/Illuminate/Routing/Router.php on line 400
+[18-Sep-2018 08:26:08 UTC] PHP Warning:  Uncaught ErrorException: require(/home/vma54n6di/public_html/admin/routes/web.php): failed to open stream: No such file or directory in /home/vma54n6di/public_html/admin/vendor/laravel/framework/src/Illuminate/Routing/Router.php:400
+Stack trace:
+#0 /home/vma54n6di/public_html/admin/vendor/laravel/framework/src/Illuminate/Routing/Router.php(400): Illuminate\Foundation\Bootstrap\HandleExceptions->handleError(2, 'require(/home/v...', '/home/vma54n6di...', 400, Array)
+#1 /home/vma54n6di/public_html/admin/vendor/laravel/framework/src/Illuminate/Routing/Router.php(400): require()
+#2 /home/vma54n6di/public_html/admin/vendor/laravel/framework/src/Illuminate/Routing/Router.php(356): Illuminate\Routing\Router->loadRoutes('/home/vma54n6di...')
+#3 /home/vma54n6di/public_html/admin/vendor/laravel/framework/src/Illuminate/Routing/RouteRegistrar.php(121): Illuminate\Routing\Router->group(Array, '/home/vma54n6di...')
+#4 /home/vma54n6di/public_html/admin/app/Providers/RouteServiceProvider.php(56): Illuminate\Routing\RouteRegi in /home/vma54n6di/public_html/admin/vendor/laravel/framework/src/Illuminate/Routing/Router.php on line 400
+[18-Sep-2018 08:26:08 UTC] PHP Fatal error:  Illuminate\Routing\Router::loadRoutes(): Failed opening required '/home/vma54n6di/public_html/admin/routes/web.php' (include_path='.:/opt/alt/php71/usr/share/pear') in /home/vma54n6di/public_html/admin/vendor/laravel/framework/src/Illuminate/Routing/Router.php on line 400
+[18-Sep-2018 08:26:08 UTC] PHP Warning:  Uncaught ErrorException: require(/home/vma54n6di/public_html/admin/routes/web.php): failed to open stream: No such file or directory in /home/vma54n6di/public_html/admin/vendor/laravel/framework/src/Illuminate/Routing/Router.php:400
+Stack trace:
+#0 /home/vma54n6di/public_html/admin/vendor/laravel/framework/src/Illuminate/Routing/Router.php(400): Illuminate\Foundation\Bootstrap\HandleExceptions->handleError(2, 'require(/home/v...', '/home/vma54n6di...', 400, Array)
+#1 /home/vma54n6di/public_html/admin/vendor/laravel/framework/src/Illuminate/Routing/Router.php(400): require()
+#2 /home/vma54n6di/public_html/admin/vendor/laravel/framework/src/Illuminate/Routing/Router.php(356): Illuminate\Routing\Router->loadRoutes('/home/vma54n6di...')
+#3 /home/vma54n6di/public_html/admin/vendor/laravel/framework/src/Illuminate/Routing/RouteRegistrar.php(121): Illuminate\Routing\Router->group(Array, '/home/vma54n6di...')
+#4 /home/vma54n6di/public_html/admin/app/Providers/RouteServiceProvider.php(56): Illuminate\Routing\RouteRegi in /home/vma54n6di/public_html/admin/vendor/laravel/framework/src/Illuminate/Routing/Router.php on line 400
+[18-Sep-2018 08:26:08 UTC] PHP Fatal error:  Illuminate\Routing\Router::loadRoutes(): Failed opening required '/home/vma54n6di/public_html/admin/routes/web.php' (include_path='.:/opt/alt/php71/usr/share/pear') in /home/vma54n6di/public_html/admin/vendor/laravel/framework/src/Illuminate/Routing/Router.php on line 400
+[14-Nov-2018 12:00:51 Asia/Kolkata] PHP Fatal error:  Cannot redeclare App\Http\Controllers\ApiController::checkImage() in /home/vma54n6di/public_html/admin_test/app/Http/Controllers/ApiController.php on line 2224
+[14-Nov-2018 12:00:52 Asia/Kolkata] PHP Fatal error:  Cannot redeclare App\Http\Controllers\ApiController::checkImage() in /home/vma54n6di/public_html/admin_test/app/Http/Controllers/ApiController.php on line 2224
+[14-Nov-2018 12:00:52 Asia/Kolkata] PHP Fatal error:  Cannot redeclare App\Http\Controllers\ApiController::checkImage() in /home/vma54n6di/public_html/admin_test/app/Http/Controllers/ApiController.php on line 2224
+[14-Nov-2018 12:00:52 Asia/Kolkata] PHP Fatal error:  Cannot redeclare App\Http\Controllers\ApiController::checkImage() in /home/vma54n6di/public_html/admin_test/app/Http/Controllers/ApiController.php on line 2224
+[14-Nov-2018 12:01:10 Asia/Kolkata] PHP Fatal error:  Cannot redeclare App\Http\Controllers\ApiController::checkImage() in /home/vma54n6di/public_html/admin_test/app/Http/Controllers/ApiController.php on line 2224
+[14-Nov-2018 12:01:11 Asia/Kolkata] PHP Fatal error:  Cannot redeclare App\Http\Controllers\ApiController::checkImage() in /home/vma54n6di/public_html/admin_test/app/Http/Controllers/ApiController.php on line 2224
+[14-Nov-2018 12:01:11 Asia/Kolkata] PHP Fatal error:  Cannot redeclare App\Http\Controllers\ApiController::checkImage() in /home/vma54n6di/public_html/admin_test/app/Http/Controllers/ApiController.php on line 2224
+[14-Nov-2018 12:01:12 Asia/Kolkata] PHP Fatal error:  Cannot redeclare App\Http\Controllers\ApiController::checkImage() in /home/vma54n6di/public_html/admin_test/app/Http/Controllers/ApiController.php on line 2224
+[14-Nov-2018 12:01:50 Asia/Kolkata] PHP Fatal error:  Cannot redeclare App\Http\Controllers\ApiController::checkImage() in /home/vma54n6di/public_html/admin_test/app/Http/Controllers/ApiController.php on line 2224
+[14-Nov-2018 12:01:50 Asia/Kolkata] PHP Fatal error:  Cannot redeclare App\Http\Controllers\ApiController::checkImage() in /home/vma54n6di/public_html/admin_test/app/Http/Controllers/ApiController.php on line 2224
+[14-Nov-2018 12:01:51 Asia/Kolkata] PHP Fatal error:  Cannot redeclare App\Http\Controllers\ApiController::checkImage() in /home/vma54n6di/public_html/admin_test/app/Http/Controllers/ApiController.php on line 2224
+[14-Nov-2018 12:01:51 Asia/Kolkata] PHP Fatal error:  Cannot redeclare App\Http\Controllers\ApiController::checkImage() in /home/vma54n6di/public_html/admin_test/app/Http/Controllers/ApiController.php on line 2224
+[11-Dec-2018 18:07:51 Asia/Kolkata] PHP Fatal error:  Allowed memory size of 268435456 bytes exhausted (tried to allocate 199233536 bytes) in /home/vma54n6di/public_html/admin_test/app/Http/Controllers/ApiController.php on line 2940
